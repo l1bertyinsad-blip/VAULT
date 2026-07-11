@@ -4,6 +4,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @AppStorage("themeSelection") private var themeSelection = AppTheme.system.rawValue
+    @AppStorage("appLockEnabled") private var appLockEnabled = false
     @State private var usedBytes: Int64 = 0
     @State private var showsDeleteAll = false
     @State private var cleanupError = false
@@ -22,6 +23,15 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+            }
+
+            Section("Конфиденциальность") {
+                Toggle(isOn: $appLockEnabled) {
+                    Label("Защита Face ID", systemImage: "faceid")
+                }
+                Text("При недоступном Face ID используется код-пароль устройства.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("О приложении") {
@@ -71,6 +81,15 @@ struct SettingsView: View {
         do {
             try LocalFileService.shared.deleteAll()
             usedBytes = 0
+            let inbox = VaultFolder(
+                name: "Входящие",
+                colorIdentifier: "purple",
+                symbolName: "tray.full.fill",
+                sortOrder: -1_000,
+                isSystem: true
+            )
+            context.insert(inbox)
+            try? context.save()
         } catch {
             cleanupError = true
         }

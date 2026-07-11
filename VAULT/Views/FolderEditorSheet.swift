@@ -12,6 +12,7 @@ struct FolderEditorSheet: View {
     @State private var name: String
     @State private var colorIdentifier: String
     @State private var symbolName: String
+    @State private var template: VaultFolderTemplate
 
     private let symbols = ["folder.fill", "gamecontroller.fill", "paintpalette.fill", "film.fill", "cart.fill", "star.fill"]
 
@@ -23,10 +24,12 @@ struct FolderEditorSheet: View {
             _name = State(initialValue: "")
             _colorIdentifier = State(initialValue: "purple")
             _symbolName = State(initialValue: "folder.fill")
+            _template = State(initialValue: .general)
         case .edit(let folder):
             _name = State(initialValue: folder.name)
             _colorIdentifier = State(initialValue: folder.colorIdentifier)
             _symbolName = State(initialValue: folder.symbolName)
+            _template = State(initialValue: folder.template)
         }
     }
 
@@ -39,6 +42,23 @@ struct FolderEditorSheet: View {
                     TextField("Например, Дизайн", text: $name)
                         .textInputAutocapitalization(.sentences)
                         .accessibilityIdentifier("folderNameField")
+                }
+
+                Section("Назначение") {
+                    Picker("Шаблон", selection: $template) {
+                        ForEach(VaultFolderTemplate.allCases) { template in
+                            Label(template.title, systemImage: template.symbolName)
+                                .tag(template)
+                        }
+                    }
+                    .onChange(of: template) { _, newValue in
+                        if symbolName == "folder.fill" || mode.isCreate {
+                            symbolName = newValue.symbolName
+                        }
+                    }
+                    Text("Шаблон добавляет подходящие статусы и поля карточек.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Section("Цвет") {
@@ -104,6 +124,7 @@ struct FolderEditorSheet: View {
                 colorIdentifier: colorIdentifier,
                 symbolName: symbolName,
                 sortOrder: nextSortOrder,
+                template: template,
                 in: context
             )
         case .edit(let folder):
@@ -112,6 +133,7 @@ struct FolderEditorSheet: View {
                 name: name,
                 colorIdentifier: colorIdentifier,
                 symbolName: symbolName,
+                template: template,
                 in: context
             )
         }

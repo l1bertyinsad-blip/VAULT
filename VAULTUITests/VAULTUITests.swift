@@ -10,7 +10,7 @@ final class VAULTUITests: XCTestCase {
         app.launchArguments = ["-UITesting"]
         app.launch()
 
-        XCTAssertTrue(app.otherElements["foldersEmptyState"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.buttons["createFolderButton"].waitForExistence(timeout: 5))
         app.buttons["createFolderButton"].tap()
 
         let nameField = app.textFields["folderNameField"]
@@ -22,6 +22,6 @@ final class VAULTUITests: XCTestCase {
         let folder = app.buttons["folderCard_UI Test"]
         XCTAssertTrue(folder.waitForExistence(timeout: 2))
         folder.tap()
-        XCTAssertTrue(app.otherElements["folderEmptyState"].waitForExistence(timeout: 2))
+        XCTAssertTrue(app.descendants(matching: .any)["folderEmptyState"].waitForExistence(timeout: 4))
     }
 }

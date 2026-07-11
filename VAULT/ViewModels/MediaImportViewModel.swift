@@ -10,6 +10,7 @@ final class MediaImportViewModel {
     var completedCount = 0
     var totalCount = 0
     var errorMessage: String?
+    var skippedDuplicates = 0
 
     var progress: Double {
         totalCount == 0 ? 0 : Double(completedCount) / Double(totalCount)
@@ -31,6 +32,7 @@ final class MediaImportViewModel {
         completedCount = 0
         totalCount = pickerItems.count
         errorMessage = nil
+        skippedDuplicates = 0
         var failures = 0
         let folderID = folder.id
 
@@ -42,6 +44,15 @@ final class MediaImportViewModel {
 
             switch await service.importItem(pickerItem) {
             case .success(let draft):
+                if isDuplicate(draft, in: folder, context: context) {
+                    service.storage.delete(
+                        localFileName: draft.localFileName,
+                        thumbnailFileName: draft.thumbnailFileName
+                    )
+                    skippedDuplicates += 1
+                    completedCount += 1
+                    continue
+                }
                 let media = VaultMediaItem(
                     id: draft.id,
                     mediaType: draft.mediaType,
@@ -50,7 +61,9 @@ final class MediaImportViewModel {
                     originalFileName: draft.originalFileName,
                     sortOrder: folder.items.count,
                     duration: draft.duration,
-                    folder: folder
+                    folder: folder,
+                    recognizedText: draft.recognizedText,
+                    contentHash: draft.contentHash
                 )
                 context.insert(media)
                 try? context.save()
@@ -64,6 +77,10 @@ final class MediaImportViewModel {
             errorMessage = failures == 1
                 ? "Один материал не удалось импортировать. Остальные сохранены."
                 : "Не удалось импортировать материалов: \(failures). Остальные сохранены."
+        } else if skippedDuplicates > 0 {
+            errorMessage = skippedDuplicates == 1
+                ? "Один дубликат пропущен."
+                : "Дубликатов пропущено: \(skippedDuplicates)."
         }
         isImporting = false
     }
@@ -71,5 +88,18 @@ final class MediaImportViewModel {
     private func folderStillExists(id: UUID, context: ModelContext) -> Bool {
         let descriptor = FetchDescriptor<VaultFolder>(predicate: #Predicate { $0.id == id })
         return (try? context.fetchCount(descriptor)) == 1
+    }
+
+    private func isDuplicate(
+        _ draft: ImportedMediaDraft,
+        in folder: VaultFolder,
+        context: ModelContext
+    ) -> Bool {
+        guard !draft.contentHash.isEmpty else { return false }
+        let hash = draft.contentHash
+        let descriptor = FetchDescriptor<VaultMediaItem>(
+            predicate: #Predicate { $0.contentHash == hash }
+        )
+        return ((try? context.fetch(descriptor)) ?? []).contains { $0.folder?.id == folder.id }
     }
 }

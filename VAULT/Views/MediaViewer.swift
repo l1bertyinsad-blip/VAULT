@@ -10,6 +10,8 @@ struct MediaViewer: View {
     @State private var currentID: UUID
     @State private var showsDeleteConfirmation = false
     @State private var showsMove = false
+    @State private var showsMetadata = false
+    @State private var showsShare = false
 
     init(items: [VaultMediaItem], initialItemID: UUID) {
         _items = State(initialValue: items)
@@ -39,6 +41,13 @@ struct MediaViewer: View {
                     }
                     .accessibilityLabel("Закрыть")
                     Spacer()
+                    Button { toggleFavorite() } label: {
+                        Image(systemName: currentItem?.isFavorite == true ? "star.fill" : "star")
+                            .foregroundStyle(currentItem?.isFavorite == true ? .yellow : .white)
+                            .frame(width: 42, height: 42)
+                            .background(.black.opacity(0.45), in: Circle())
+                    }
+                    .accessibilityLabel("Избранное")
                     Text(positionText)
                         .font(.subheadline.weight(.semibold))
                         .padding(.horizontal, 12)
@@ -50,15 +59,25 @@ struct MediaViewer: View {
 
                 Spacer()
 
-                HStack(spacing: 42) {
+                HStack(spacing: 28) {
+                    Button { showsMetadata = true } label: {
+                        Image(systemName: "info.circle")
+                    }
+                    .accessibilityLabel("Описание и теги")
+                    Button { showsShare = true } label: {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel("Поделиться")
                     Button { showsMove = true } label: {
-                        Label("Переместить", systemImage: "folder")
+                        Image(systemName: "folder")
                     }
+                    .accessibilityLabel("Переместить")
                     Button(role: .destructive) { showsDeleteConfirmation = true } label: {
-                        Label("Удалить", systemImage: "trash")
+                        Image(systemName: "trash")
                     }
+                    .accessibilityLabel("Удалить")
                 }
-                .font(.subheadline.weight(.semibold))
+                .font(.title3.weight(.semibold))
                 .padding(.horizontal, 26)
                 .padding(.vertical, 14)
                 .background(.black.opacity(0.48), in: Capsule())
@@ -78,6 +97,16 @@ struct MediaViewer: View {
                 MoveItemsSheet(items: [item], currentFolder: folder) { dismiss() }
             }
         }
+        .sheet(isPresented: $showsMetadata) {
+            if let item = currentItem { MediaMetadataSheet(item: item) }
+        }
+        .sheet(isPresented: $showsShare) {
+            if let item = currentItem {
+                ActivityView(activityItems: [
+                    LocalFileService.shared.url(for: item.localFileName, location: .media)
+                ])
+            }
+        }
     }
 
     private var positionText: String {
@@ -92,6 +121,12 @@ struct MediaViewer: View {
         VaultOperations.delete(item, in: context)
         items.remove(at: index)
         if let next { currentID = next.id } else { dismiss() }
+    }
+
+    private func toggleFavorite() {
+        guard let item = currentItem else { return }
+        item.isFavorite.toggle()
+        try? context.save()
     }
 }
 

@@ -1,7 +1,9 @@
+import CryptoKit
 import Foundation
 import PhotosUI
 import SwiftUI
 import UniformTypeIdentifiers
+import Vision
 
 struct ImportedMediaDraft: Sendable {
     let id: UUID
@@ -10,6 +12,8 @@ struct ImportedMediaDraft: Sendable {
     let thumbnailFileName: String
     let originalFileName: String?
     let duration: Double?
+    let recognizedText: String
+    let contentHash: String
 }
 
 enum MediaImportOutcome {
@@ -39,6 +43,7 @@ struct MediaImportService: Sendable {
             guard let data = try await item.loadTransferable(type: Data.self) else {
                 return .failure
             }
+            let hash = SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
             let localFileName = try storage.writeMedia(data, id: id, fileExtension: fileExtension)
             do {
                 let sourceURL = storage.url(for: localFileName, location: .media)
@@ -48,13 +53,18 @@ struct MediaImportService: Sendable {
                     id: id,
                     storage: storage
                 )
+                let recognizedText = type == .photo
+                    ? await OCRService.recognizeText(at: sourceURL)
+                    : ""
                 return .success(ImportedMediaDraft(
                     id: id,
                     mediaType: type,
                     localFileName: localFileName,
                     thumbnailFileName: thumbnail.fileName,
                     originalFileName: nil,
-                    duration: thumbnail.duration
+                    duration: thumbnail.duration,
+                    recognizedText: recognizedText,
+                    contentHash: hash
                 ))
             } catch {
                 storage.deleteMedia(named: localFileName)
@@ -73,5 +83,25 @@ struct MediaImportService: Sendable {
         item.supportedContentTypes.first(where: {
             $0.conforms(to: type == .video ? .movie : .image)
         })
+    }
+}
+
+private enum OCRService {
+    static func recognizeText(at url: URL) async -> String {
+        await Task.detached(priority: .utility) {
+            guard let image = UIImage(contentsOfFile: url.path)?.cgImage else { return "" }
+            let request = VNRecognizeTextRequest()
+            request.recognitionLevel = .accurate
+            request.usesLanguageCorrection = true
+
+            do {
+                try VNImageRequestHandler(cgImage: image).perform([request])
+                return (request.results ?? [])
+                    .compactMap { $0.topCandidates(1).first?.string }
+                    .joined(separator: "\n")
+            } catch {
+                return ""
+            }
+        }.value
     }
 }

@@ -45,14 +45,24 @@ final class LocalFileService: @unchecked Sendable {
             .lowercased()
         guard !cleanExtension.isEmpty else { throw LocalFileServiceError.invalidFileName }
         let fileName = "\(id.uuidString).\(cleanExtension)"
-        try data.write(to: url(for: fileName, location: .media), options: .atomic)
+        let destination = url(for: fileName, location: .media)
+        try data.write(to: destination, options: .atomic)
+        try? fileManager.setAttributes(
+            [.protectionKey: FileProtectionType.complete],
+            ofItemAtPath: destination.path
+        )
         return fileName
     }
 
     func writeThumbnail(_ data: Data, id: UUID) throws -> String {
         try prepareDirectories()
         let fileName = "\(id.uuidString).jpg"
-        try data.write(to: url(for: fileName, location: .thumbnail), options: .atomic)
+        let destination = url(for: fileName, location: .thumbnail)
+        try data.write(to: destination, options: .atomic)
+        try? fileManager.setAttributes(
+            [.protectionKey: FileProtectionType.complete],
+            ofItemAtPath: destination.path
+        )
         return fileName
     }
 
@@ -81,6 +91,11 @@ final class LocalFileService: @unchecked Sendable {
 
     func deleteMedia(named fileName: String) {
         try? fileManager.removeItem(at: url(for: fileName, location: .media))
+    }
+
+    func delete(localFileName: String, thumbnailFileName: String) {
+        try? fileManager.removeItem(at: url(for: localFileName, location: .media))
+        try? fileManager.removeItem(at: url(for: thumbnailFileName, location: .thumbnail))
     }
 
     func deleteAll() throws {

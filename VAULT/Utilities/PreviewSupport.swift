@@ -10,9 +10,9 @@ enum PreviewSupport {
         guard withSamples else { return container }
 
         let samples = [
-            VaultFolder(name: "CS2", colorIdentifier: "purple", symbolName: "gamecontroller.fill", sortOrder: 0),
-            VaultFolder(name: "Дизайн", colorIdentifier: "pink", symbolName: "paintpalette.fill", sortOrder: 1),
-            VaultFolder(name: "Фильмы", colorIdentifier: "blue", symbolName: "film.fill", sortOrder: 2)
+            VaultFolder(name: "CS2", colorIdentifier: "purple", symbolName: "gamecontroller.fill", sortOrder: 0, template: .games),
+            VaultFolder(name: "Дизайн", colorIdentifier: "pink", symbolName: "paintpalette.fill", sortOrder: 1, template: .design),
+            VaultFolder(name: "Фильмы", colorIdentifier: "blue", symbolName: "film.fill", sortOrder: 2, template: .films)
         ]
         samples.forEach { container.mainContext.insert($0) }
         return container

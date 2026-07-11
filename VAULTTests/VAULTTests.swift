@@ -5,6 +5,16 @@ import XCTest
 
 @MainActor
 final class VAULTTests: XCTestCase {
+    private var container: ModelContainer!
+
+    override func setUpWithError() throws {
+        container = try makeContainer()
+    }
+
+    override func tearDownWithError() throws {
+        container = nil
+    }
+
     private func makeContainer() throws -> ModelContainer {
         let schema = Schema([VaultFolder.self, VaultMediaItem.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
@@ -12,7 +22,7 @@ final class VAULTTests: XCTestCase {
     }
 
     func testCreateAndRenameFolder() throws {
-        let context = try makeContainer().mainContext
+        let context = container.mainContext
         let folder = try XCTUnwrap(VaultOperations.createFolder(
             name: "  Дизайн  ",
             colorIdentifier: "purple",
@@ -40,7 +50,7 @@ final class VAULTTests: XCTestCase {
     }
 
     func testAddItemAndCascadeDeleteFolder() throws {
-        let context = try makeContainer().mainContext
+        let context = container.mainContext
         let folder = VaultFolder(name: "CS2")
         let item = VaultMediaItem(
             mediaType: .photo,
@@ -61,7 +71,7 @@ final class VAULTTests: XCTestCase {
     }
 
     func testDeleteFolderRemovesAssociatedFiles() throws {
-        let context = try makeContainer().mainContext
+        let context = container.mainContext
         let temporary = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         let storage = LocalFileService(rootURL: temporary)
         defer { try? FileManager.default.removeItem(at: temporary) }
@@ -99,7 +109,7 @@ final class VAULTTests: XCTestCase {
     }
 
     func testMoveItems() throws {
-        let context = try makeContainer().mainContext
+        let context = container.mainContext
         let source = VaultFolder(name: "Источник")
         let destination = VaultFolder(name: "Назначение")
         let item = VaultMediaItem(
@@ -117,5 +127,29 @@ final class VAULTTests: XCTestCase {
 
         XCTAssertEqual(item.folder?.id, destination.id)
         XCTAssertTrue(destination.items.contains(where: { $0.id == item.id }))
+    }
+
+    func testTemplateAndSearchableMetadata() throws {
+        let context = container.mainContext
+        let folder = VaultFolder(name: "Покупки", template: .purchases)
+        let item = VaultMediaItem(
+            mediaType: .photo,
+            localFileName: "shoes.jpg",
+            thumbnailFileName: "shoes-thumb.jpg",
+            folder: folder,
+            note: "Синие кроссовки",
+            tags: ["обувь", "спорт"],
+            status: "Хочу",
+            price: 99.90,
+            recognizedText: "RUN FAST"
+        )
+        context.insert(folder)
+        context.insert(item)
+        try context.save()
+
+        XCTAssertEqual(folder.template, .purchases)
+        XCTAssertTrue(item.searchableText.contains("кроссовки"))
+        XCTAssertTrue(item.searchableText.contains("run fast"))
+        XCTAssertEqual(item.tags, ["обувь", "спорт"])
     }
 }
