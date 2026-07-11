@@ -17,6 +17,13 @@ enum PreviewSupport {
         samples.forEach { container.mainContext.insert($0) }
         return container
     }
+
+    static func emptyFolderPreview() -> (container: ModelContainer, folder: VaultFolder) {
+        let container = container(withSamples: false)
+        let folder = VaultFolder(name: "Дизайн", symbolName: "paintpalette.fill")
+        container.mainContext.insert(folder)
+        return (container, folder)
+    }
 }
 
 #Preview("Папки") {
@@ -25,11 +32,9 @@ enum PreviewSupport {
 }
 
 #Preview("Пустая папка") {
-    let container = PreviewSupport.container(withSamples: false)
-    let folder = VaultFolder(name: "Дизайн", symbolName: "paintpalette.fill")
-    container.mainContext.insert(folder)
+    let preview = PreviewSupport.emptyFolderPreview()
     NavigationStack {
-        FolderView(folder: folder)
+        FolderView(folder: preview.folder)
     }
-    .modelContainer(container)
+    .modelContainer(preview.container)
 }

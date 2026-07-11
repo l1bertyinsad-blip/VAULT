@@ -1,6 +1,7 @@
 import Observation
 import PhotosUI
 import SwiftData
+import SwiftUI
 
 @MainActor
 @Observable
