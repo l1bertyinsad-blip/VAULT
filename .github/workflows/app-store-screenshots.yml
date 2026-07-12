@@ -65,8 +65,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet Pillow
-          python3 Tools/frame_screenshots.py \
+          python3 -m venv "$RUNNER_TEMP/screenshot-tools"
+          "$RUNNER_TEMP/screenshot-tools/bin/python" -m pip install --quiet Pillow
+          "$RUNNER_TEMP/screenshot-tools/bin/python" Tools/frame_screenshots.py \
             --input "$RUNNER_TEMP/RawScreenshots" \
             --output "$RUNNER_TEMP/AppStoreScreenshots"
 
