@@ -1,0 +1,90 @@
+name: App Store screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Generate Russian App Store screenshots
+    runs-on: macos-15
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+
+      - name: Create screenshot simulator
+        id: simulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          RUNTIME_ID="$(xcrun simctl list runtimes available -j | python3 -c '
+          import json, re, sys
+          runtimes = [r for r in json.load(sys.stdin)["runtimes"] if r.get("isAvailable") and r.get("name", "").startswith("iOS ")]
+          runtimes.sort(key=lambda r: tuple(map(int, re.findall(r"\d+", r["name"]))), reverse=True)
+          print(runtimes[0]["identifier"])
+          ')"
+          DEVICE_TYPE_ID="$(xcrun simctl list devicetypes -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devicetypes"]
+          preferred = ["iPhone 17 Pro Max", "iPhone 17 Pro", "iPhone 16 Pro Max", "iPhone 16 Pro", "iPhone SE (3rd generation)"]
+          by_name = {d["name"]: d["identifier"] for d in devices}
+          print(next(by_name[name] for name in preferred if name in by_name))
+          ')"
+          DEVICE_ID="$(xcrun simctl create 'VAULT Screenshot iPhone' "$DEVICE_TYPE_ID" "$RUNTIME_ID")"
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Capture app screens
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project VAULT.xcodeproj \
+            -scheme VAULT \
+            -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}' \
+            -only-testing:VAULTUITests/VAULTUITests/testAppStoreScreenshots \
+            -resultBundlePath "$RUNNER_TEMP/VAULT-Screenshots.xcresult" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export screenshot attachments
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/RawScreenshots"
+          xcrun xcresulttool export attachments \
+            --path "$RUNNER_TEMP/VAULT-Screenshots.xcresult" \
+            --output-path "$RUNNER_TEMP/RawScreenshots"
+
+      - name: Build App Store cards
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet Pillow
+          python3 Tools/frame_screenshots.py \
+            --input "$RUNNER_TEMP/RawScreenshots" \
+            --output "$RUNNER_TEMP/AppStoreScreenshots"
+
+      - name: Upload screenshot package
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAULT-App-Store-Screenshots-RU
+          path: ${{ runner.temp }}/AppStoreScreenshots/*.png
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload raw screenshots and test result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAULT-Screenshot-Sources
+          path: |
+            ${{ runner.temp }}/RawScreenshots
+            ${{ runner.temp }}/VAULT-Screenshots.xcresult
+          if-no-files-found: warn
+          retention-days: 14

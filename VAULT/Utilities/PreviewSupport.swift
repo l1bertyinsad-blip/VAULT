@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 enum PreviewSupport {
     static func container(withSamples: Bool = true) -> ModelContainer {
-        let schema = Schema([VaultFolder.self, VaultMediaItem.self])
+        let schema = Schema([VaultFolder.self, VaultMediaItem.self, VaultNote.self])
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try! ModelContainer(for: schema, configurations: [configuration])
         guard withSamples else { return container }

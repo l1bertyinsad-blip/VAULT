@@ -1,9 +1,10 @@
 import Foundation
 import SwiftData
 
-enum VaultMediaType: String, Codable, CaseIterable, Sendable {
+enum VaultMediaType: String, Codable, CaseIterable, Sendable, Equatable {
     case photo
     case video
+    case link
 }
 
 @Model
@@ -17,6 +18,8 @@ final class VaultMediaItem {
     var sortOrder: Int
     var duration: Double?
     var folder: VaultFolder?
+    var title: String = ""
+    var caption: String = ""
     var note: String = ""
     var tagsRaw: String = ""
     var sourceURLString: String = ""
@@ -43,6 +46,8 @@ final class VaultMediaItem {
         sortOrder: Int = 0,
         duration: Double? = nil,
         folder: VaultFolder? = nil,
+        title: String = "",
+        caption: String = "",
         note: String = "",
         tags: [String] = [],
         sourceURLString: String = "",
@@ -63,6 +68,8 @@ final class VaultMediaItem {
         self.sortOrder = sortOrder
         self.duration = duration
         self.folder = folder
+        self.title = title
+        self.caption = caption
         self.note = note
         self.tagsRaw = tags.joined(separator: "\n")
         self.sourceURLString = sourceURLString
@@ -89,7 +96,7 @@ final class VaultMediaItem {
     }
 
     var searchableText: String {
-        [originalFileName ?? "", note, tagsRaw, sourceURLString, statusRaw, recognizedText]
+        [originalFileName ?? "", title, caption, note, tagsRaw, sourceURLString, statusRaw, recognizedText]
             .joined(separator: " ")
             .lowercased()
     }

@@ -85,8 +85,12 @@ final class LocalFileService: @unchecked Sendable {
     }
 
     func delete(media item: VaultMediaItem) {
-        try? fileManager.removeItem(at: url(for: item.localFileName, location: .media))
-        try? fileManager.removeItem(at: url(for: item.thumbnailFileName, location: .thumbnail))
+        if !item.localFileName.isEmpty {
+            try? fileManager.removeItem(at: url(for: item.localFileName, location: .media))
+        }
+        if !item.thumbnailFileName.isEmpty {
+            try? fileManager.removeItem(at: url(for: item.thumbnailFileName, location: .thumbnail))
+        }
     }
 
     func deleteMedia(named fileName: String) {
@@ -94,8 +98,12 @@ final class LocalFileService: @unchecked Sendable {
     }
 
     func delete(localFileName: String, thumbnailFileName: String) {
-        try? fileManager.removeItem(at: url(for: localFileName, location: .media))
-        try? fileManager.removeItem(at: url(for: thumbnailFileName, location: .thumbnail))
+        if !localFileName.isEmpty {
+            try? fileManager.removeItem(at: url(for: localFileName, location: .media))
+        }
+        if !thumbnailFileName.isEmpty {
+            try? fileManager.removeItem(at: url(for: thumbnailFileName, location: .thumbnail))
+        }
     }
 
     func deleteAll() throws {

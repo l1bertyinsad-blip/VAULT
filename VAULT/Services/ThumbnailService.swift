@@ -4,6 +4,7 @@ import UIKit
 enum ThumbnailError: LocalizedError {
     case unreadableImage
     case encodingFailed
+    case unsupportedType
 
     var errorDescription: String? { "Не удалось создать превью материала." }
 }
@@ -40,6 +41,8 @@ struct ThumbnailService: Sendable {
                 )
                 let image = UIImage(cgImage: imageRef)
                 return (try Self.jpegThumbnail(from: image), totalSeconds.isFinite ? totalSeconds : nil)
+            case .link:
+                throw ThumbnailError.unsupportedType
             }
         }.value
 

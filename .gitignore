@@ -1,0 +1,12 @@
+DerivedData/
+*.xcarchive
+*.ipa
+*.xcresult
+Signing/
+*.p8
+*.p12
+*.cer
+*.csr
+*.key
+*.mobileprovision
+.DS_Store
