@@ -47,7 +47,7 @@ enum LinkMetadataService {
         let typeIdentifier = provider.registeredTypeIdentifiers.first { identifier in
             UTType(identifier)?.conforms(to: .image) == true
         } ?? UTType.image.identifier
-        await withCheckedContinuation { continuation in
+        return await withCheckedContinuation { continuation in
             provider.loadDataRepresentation(forTypeIdentifier: typeIdentifier) { data, _ in
                 continuation.resume(returning: data)
             }
