@@ -1,0 +1,19 @@
+If you are going to scroll anyway, make the scroll useful.
+
+VAULT creates a short daily feed from your own Inbox, favorites, forgotten saves, and personal notes. There are no strangers, ads, or endless recommendations — only things that once mattered to you.
+
+Save from supported apps with the iOS Share sheet, or add content directly in VAULT. Send each item to a collection right away or leave it in Inbox to organize later.
+
+FEATURES
+
+• Photos, videos, links, and notes in one place
+• A finite daily feed made from your own saved ideas
+• Quick reflections directly from each feed card
+• Collections, Inbox, favorites, tags, captions, and statuses
+• Search across titles, notes, sources, and text recognized in images
+• On-device text recognition using Apple Vision
+• Face ID or device-passcode lock
+• Local storage with no account, ads, or analytics trackers
+• Collection export with original files
+
+VAULT does not bypass source-service restrictions. When a source shares a link instead of a media file, VAULT stores a link card that opens the original.

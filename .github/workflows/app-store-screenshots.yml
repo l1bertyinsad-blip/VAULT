@@ -1,0 +1,67 @@
+name: App Store screenshots
+
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    name: Generate Russian App Store screenshots
+    runs-on: macos-15
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
+
+      - name: Capture app screens
+        shell: bash
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project VAULT.xcodeproj \
+            -scheme VAULT \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max,OS=26.0' \
+            -only-testing:VAULTUITests/VAULTUITests/testAppStoreScreenshots \
+            -resultBundlePath "$RUNNER_TEMP/VAULT-Screenshots.xcresult" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export screenshot attachments
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/RawScreenshots"
+          xcrun xcresulttool export attachments \
+            --path "$RUNNER_TEMP/VAULT-Screenshots.xcresult" \
+            --output-path "$RUNNER_TEMP/RawScreenshots"
+
+      - name: Build App Store cards
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet Pillow
+          python3 Tools/frame_screenshots.py \
+            --input "$RUNNER_TEMP/RawScreenshots" \
+            --output "$RUNNER_TEMP/AppStoreScreenshots"
+
+      - name: Upload screenshot package
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAULT-App-Store-Screenshots-RU
+          path: ${{ runner.temp }}/AppStoreScreenshots/*.png
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload raw screenshots and test result
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: VAULT-Screenshot-Sources
+          path: |
+            ${{ runner.temp }}/RawScreenshots
+            ${{ runner.temp }}/VAULT-Screenshots.xcresult
+          if-no-files-found: warn
+          retention-days: 14

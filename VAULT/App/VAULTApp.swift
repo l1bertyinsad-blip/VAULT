@@ -7,7 +7,7 @@ struct VAULTApp: App {
     @AppStorage("themeSelection") private var themeSelection = AppTheme.system.rawValue
 
     private let container: ModelContainer = {
-        let schema = Schema([VaultFolder.self, VaultMediaItem.self])
+        let schema = Schema([VaultFolder.self, VaultMediaItem.self, VaultNote.self])
         let isUITesting = ProcessInfo.processInfo.arguments.contains("-UITesting")
         let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isUITesting)
         do {
@@ -31,19 +31,29 @@ struct VAULTApp: App {
 private struct AppRootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @AppStorage("appLockEnabled") private var appLockEnabled = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var showsSplash = !ProcessInfo.processInfo.arguments.contains("-UITesting")
     @State private var isUnlocked = ProcessInfo.processInfo.arguments.contains("-UITesting")
     @State private var authenticationError: String?
 
     var body: some View {
         ZStack {
-            FoldersView()
+            MainTabView()
 
             if appLockEnabled && !isUnlocked && !showsSplash {
                 AppLockView(errorMessage: authenticationError) {
                     Task { await unlock() }
                 }
                 .zIndex(1)
+            }
+
+            if !hasCompletedOnboarding,
+               !ProcessInfo.processInfo.arguments.contains("-UITesting"),
+               !showsSplash,
+               (!appLockEnabled || isUnlocked) {
+                OnboardingView { hasCompletedOnboarding = true }
+                    .transition(.opacity.combined(with: .scale(scale: 0.98)))
+                    .zIndex(1.5)
             }
 
             if showsSplash {
@@ -54,8 +64,8 @@ private struct AppRootView: View {
         }
         .task {
             if showsSplash {
-                try? await Task.sleep(for: .milliseconds(850))
-                withAnimation(.easeOut(duration: 0.28)) { showsSplash = false }
+                try? await Task.sleep(for: .milliseconds(2_150))
+                withAnimation(.easeInOut(duration: 0.42)) { showsSplash = false }
             }
             if appLockEnabled && !isUnlocked { await unlock() }
             if !appLockEnabled { isUnlocked = true }

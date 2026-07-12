@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Environment(\.modelContext) private var context
     @AppStorage("themeSelection") private var themeSelection = AppTheme.system.rawValue
     @AppStorage("appLockEnabled") private var appLockEnabled = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
     @State private var usedBytes: Int64 = 0
     @State private var showsDeleteAll = false
     @State private var cleanupError = false
@@ -38,8 +39,16 @@ struct SettingsView: View {
                 Label("VAULT хранит выбранные материалы только на этом устройстве.", systemImage: "lock.shield")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                Link(destination: URL(string: "https://www.apple.com/legal/privacy/")!) {
-                    Label("Конфиденциальность Apple", systemImage: "arrow.up.right.square")
+                Link(destination: URL(string: "https://l1bertyinsad-blip.github.io/VAULT/privacy.html")!) {
+                    Label("Политика конфиденциальности VAULT", systemImage: "hand.raised.fill")
+                }
+                Link(destination: URL(string: "https://l1bertyinsad-blip.github.io/VAULT/support.html")!) {
+                    Label("Помощь и поддержка", systemImage: "questionmark.circle.fill")
+                }
+                Button {
+                    hasCompletedOnboarding = false
+                } label: {
+                    Label("Показать знакомство снова", systemImage: "sparkles")
                 }
             }
 
@@ -65,9 +74,15 @@ struct SettingsView: View {
     }
 
     private var appVersion: String {
-        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
-        return "\(version) (\(build))"
+        let storedVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let version = storedVersion ?? "1.0"
+        let number: String
+        if let storedNumber = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+            number = storedNumber
+        } else {
+            number = "1"
+        }
+        return "\(version) (\(number))"
     }
 
     private func refreshStorageSize() async {
@@ -76,7 +91,9 @@ struct SettingsView: View {
 
     private func clearAll() {
         let folders = (try? context.fetch(FetchDescriptor<VaultFolder>())) ?? []
+        let notes = (try? context.fetch(FetchDescriptor<VaultNote>())) ?? []
         folders.forEach { context.delete($0) }
+        notes.forEach { context.delete($0) }
         try? context.save()
         do {
             try LocalFileService.shared.deleteAll()

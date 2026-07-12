@@ -1,10 +1,11 @@
-name: Build VAULT for iOS Simulator
+name: Build iOS
 
 on:
-  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,94 +14,40 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Download project
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Show Xcode version
-        run: xcodebuild -version
+      - name: Select Xcode 26.3
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app/Contents/Developer
 
-      - name: Build application
+      - name: Build simulator app
         run: |
-          set -o pipefail
-
-          xcodebuild \
+          xcodebuild build \
             -project VAULT.xcodeproj \
             -scheme VAULT \
             -configuration Debug \
             -sdk iphonesimulator \
-            -destination "generic/platform=iOS Simulator" \
             -derivedDataPath DerivedData \
-            CODE_SIGNING_ALLOWED=NO \
-            build | tee xcodebuild.log
+            CODE_SIGNING_ALLOWED=NO
 
-      - name: Package application for Appetize
+      - name: Package for Appetize
         run: |
-          APP_PATH="DerivedData/Build/Products/Debug-iphonesimulator/VAULT.app"
+          cd DerivedData/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent VAULT.app VAULT-Appetize.zip
 
-          if [ ! -d "$APP_PATH" ]; then
-            echo "VAULT.app was not found"
-            exit 1
-          fi
-
-          ditto \
-            -c \
-            -k \
-            --sequesterRsrc \
-            --keepParent \
-            "$APP_PATH" \
-            "VAULT-Appetize.zip"
-
-      - name: Upload simulator application
+      - name: Upload Appetize artifact
         uses: actions/upload-artifact@v4
         with:
-          name: VAULT-Simulator-Build
-          path: VAULT-Appetize.zip
-          retention-days: 7
+          name: VAULT-Appetize
+          path: DerivedData/Build/Products/Debug-iphonesimulator/VAULT-Appetize.zip
           if-no-files-found: error
-
-      - name: Select simulator
-        id: simulator
-        run: |
-          DEVICE_ID=$(xcrun simctl list devices available -j | python3 -c '
-          import json
-          import sys
-
-          data = json.load(sys.stdin)
-
-          for devices in data["devices"].values():
-              for device in devices:
-                  if device["name"].startswith("iPhone"):
-                      print(device["udid"])
-                      raise SystemExit(0)
-
-          raise SystemExit("No available iPhone simulator found")
-          ')
-
-          echo "device_id=$DEVICE_ID" >> "$GITHUB_OUTPUT"
-          echo "Selected simulator: $DEVICE_ID"
+          retention-days: 14
 
       - name: Run unit and UI tests
         run: |
-          set -o pipefail
-
-          xcodebuild \
+          xcodebuild test \
             -project VAULT.xcodeproj \
             -scheme VAULT \
-            -configuration Debug \
-            -destination "platform=iOS Simulator,id=${{ steps.simulator.outputs.device_id }}" \
+            -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.0' \
             -derivedDataPath DerivedData \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            test | tee xcodebuild-tests.log
-
-      - name: Upload diagnostic files
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: VAULT-Build-Logs
-          path: |
-            xcodebuild.log
-            xcodebuild-tests.log
-            TestResults.xcresult
-          retention-days: 7
-          if-no-files-found: ignore
+            CODE_SIGNING_ALLOWED=NO

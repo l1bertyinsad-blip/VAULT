@@ -79,3 +79,41 @@ enum VaultOperations {
         try? context.save()
     }
 }
+
+@MainActor
+enum InboxSuggestionService {
+    static func suggestion(for item: VaultMediaItem, folders: [VaultFolder]) -> VaultFolder? {
+        let candidates = folders.filter { !$0.isSystem && $0.id != item.folder?.id }
+        guard !candidates.isEmpty else { return nil }
+        let text = item.searchableText
+
+        let ranked = candidates.map { folder in
+            (folder: folder, score: score(folder: folder, text: text))
+        }.sorted {
+            if $0.score != $1.score { return $0.score > $1.score }
+            return $0.folder.sortOrder < $1.folder.sortOrder
+        }
+
+        if let best = ranked.first, best.score > 0 { return best.folder }
+        return nil
+    }
+
+    private static func score(folder: VaultFolder, text: String) -> Int {
+        var result = 0
+        let folderName = folder.name.lowercased()
+        if !folderName.isEmpty && text.contains(folderName) { result += 8 }
+
+        let keywords: [String]
+        switch folder.template {
+        case .purchases: keywords = ["купить", "цена", "магазин", "product", "shop", "ozon", "wildberries"]
+        case .films: keywords = ["фильм", "сериал", "кино", "movie", "trailer", "netflix"]
+        case .design: keywords = ["дизайн", "интерфейс", "цвет", "design", "ui", "font"]
+        case .games: keywords = ["игра", "game", "steam", "playstation", "xbox"]
+        case .recipes: keywords = ["рецепт", "ингредиент", "готовить", "recipe", "food", "cook"]
+        case .travel: keywords = ["путешествие", "отель", "билет", "travel", "hotel", "flight"]
+        case .general: keywords = []
+        }
+        result += keywords.filter { text.contains($0) }.count * 3
+        return result
+    }
+}

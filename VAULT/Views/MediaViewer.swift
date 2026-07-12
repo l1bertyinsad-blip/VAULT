@@ -59,6 +59,28 @@ struct MediaViewer: View {
 
                 Spacer()
 
+                if let item = currentItem,
+                   item.mediaType != .link,
+                   !item.title.isEmpty || !item.caption.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        if !item.title.isEmpty {
+                            Text(item.title)
+                                .font(.headline)
+                        }
+                        if !item.caption.isEmpty {
+                            Text(item.caption)
+                                .font(.subheadline)
+                                .foregroundStyle(.white.opacity(0.78))
+                                .lineLimit(3)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(.black.opacity(0.48), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 10)
+                }
+
                 HStack(spacing: 28) {
                     Button { showsMetadata = true } label: {
                         Image(systemName: "info.circle")
@@ -102,9 +124,7 @@ struct MediaViewer: View {
         }
         .sheet(isPresented: $showsShare) {
             if let item = currentItem {
-                ActivityView(activityItems: [
-                    LocalFileService.shared.url(for: item.localFileName, location: .media)
-                ])
+                ActivityView(activityItems: shareItems(for: item))
             }
         }
     }
@@ -128,6 +148,20 @@ struct MediaViewer: View {
         item.isFavorite.toggle()
         try? context.save()
     }
+
+    private func shareItems(for item: VaultMediaItem) -> [Any] {
+        if item.mediaType == .link,
+           let url = URL(string: item.sourceURLString) {
+            var result: [Any] = []
+            if !item.caption.isEmpty { result.append(item.caption) }
+            result.append(url)
+            return result
+        }
+        var result: [Any] = []
+        if !item.caption.isEmpty { result.append(item.caption) }
+        result.append(LocalFileService.shared.url(for: item.localFileName, location: .media))
+        return result
+    }
 }
 
 private struct MediaPage: View {
@@ -136,13 +170,86 @@ private struct MediaPage: View {
     var body: some View {
         let url = LocalFileService.shared.url(for: item.localFileName, location: .media)
         Group {
-            if item.mediaType == .photo {
+            switch item.mediaType {
+            case .photo:
                 ZoomableImage(url: url)
-            } else {
+            case .video:
                 VaultVideoPlayer(url: url)
+            case .link:
+                LinkMediaPage(item: item)
             }
         }
-        .accessibilityLabel(item.mediaType == .photo ? "Фото на весь экран" : "Видеоплеер")
+        .accessibilityLabel(accessibilityTitle)
+    }
+
+    private var accessibilityTitle: String {
+        switch item.mediaType {
+        case .photo: "Фото на весь экран"
+        case .video: "Видеоплеер"
+        case .link: "Сохранённая ссылка"
+        }
+    }
+}
+
+private struct LinkMediaPage: View {
+    let item: VaultMediaItem
+
+    private var url: URL? { URL(string: item.sourceURLString) }
+    private var host: String {
+        url?.host?.replacingOccurrences(of: "www.", with: "") ?? "Ссылка"
+    }
+    private var isInstagram: Bool { host.contains("instagram.com") }
+
+    var body: some View {
+        VStack(spacing: 24) {
+            ZStack {
+                AsyncThumbnailView(item: item)
+                    .frame(height: 310)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(RoundedRectangle(cornerRadius: 38, style: .continuous))
+                    .shadow(color: (isInstagram ? Color.pink : VaultPalette.purple).opacity(0.35), radius: 26, y: 14)
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.62)],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 38, style: .continuous))
+                VStack(spacing: 13) {
+                    Image(systemName: isInstagram ? "play.rectangle.on.rectangle.fill" : "link")
+                        .font(.system(size: 58, weight: .semibold))
+                    Text(isInstagram ? "INSTAGRAM REEL" : host.uppercased())
+                        .font(.caption.bold())
+                        .tracking(1.8)
+                }
+                .foregroundStyle(.white)
+            }
+            .frame(height: 310)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+
+            VStack(spacing: 7) {
+                Text(item.title.isEmpty ? (isInstagram ? "Instagram Reel" : host) : item.title)
+                    .font(.title2.bold())
+                    .multilineTextAlignment(.center)
+                Text("Ссылка сохранена в VAULT")
+                    .font(.subheadline)
+                    .foregroundStyle(.white.opacity(0.65))
+            }
+
+            if let url {
+                Link(destination: url) {
+                    Label(isInstagram ? "Открыть в Instagram" : "Открыть источник", systemImage: "arrow.up.right.square.fill")
+                        .font(.headline)
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 15)
+                        .background(.white, in: Capsule())
+                }
+            }
+        }
+        .padding(.top, 36)
+        .padding(.bottom, 110)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
