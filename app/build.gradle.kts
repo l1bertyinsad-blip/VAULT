@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.nevsk1y.savio"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.nevsk1y.savio"

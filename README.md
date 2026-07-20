@@ -18,7 +18,7 @@ Native Android version of SAVIO: a private, local-first place for ideas, recipes
 ## Technology
 
 - Kotlin with Jetpack Compose and Material 3.
-- `minSdk 26`, `compileSdk 36`, `targetSdk 36`.
+- `minSdk 26`, `compileSdk 37`, `targetSdk 36`.
 - AGP 9.1.1, Gradle 9.3.1, JDK 17.
 - Package: `com.nevsk1y.savio`; debug package: `com.nevsk1y.savio.debug`.
 
