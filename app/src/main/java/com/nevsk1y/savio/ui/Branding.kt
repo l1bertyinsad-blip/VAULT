@@ -78,30 +78,30 @@ fun SavioGlyph(
             fun line(x1: Float, y1: Float, x2: Float, y2: Float) = drawLine(color, Offset(s*x1,s*y1), Offset(s*x2,s*y2), lw, cap = androidx.compose.ui.graphics.StrokeCap.Round)
             when (glyph) {
                 Glyph.HOME -> {
-                    val p=Path().apply{moveTo(s*.15f,s*.48f);lineTo(s*.5f,s*.18f);lineTo(s*.85f,s*.48f);moveTo(s*.25f,s*.42f);lineTo(s*.25f,s*.82f);lineTo(s*.75f,s*.82f);lineTo(s*.75f,s*.42f)}; drawPath(p,color,style)
+                    val p=Path().apply{moveTo(s*.15f,s*.48f);lineTo(s*.5f,s*.18f);lineTo(s*.85f,s*.48f);moveTo(s*.25f,s*.42f);lineTo(s*.25f,s*.82f);lineTo(s*.75f,s*.82f);lineTo(s*.75f,s*.42f)}; drawPath(p, color, style = style)
                 }
                 Glyph.FOLDER -> {
-                    val p=Path().apply{moveTo(s*.12f,s*.3f);lineTo(s*.4f,s*.3f);lineTo(s*.48f,s*.4f);lineTo(s*.88f,s*.4f);lineTo(s*.82f,s*.78f);lineTo(s*.18f,s*.78f);close()}; drawPath(p,color,style)
+                    val p=Path().apply{moveTo(s*.12f,s*.3f);lineTo(s*.4f,s*.3f);lineTo(s*.48f,s*.4f);lineTo(s*.88f,s*.4f);lineTo(s*.82f,s*.78f);lineTo(s*.18f,s*.78f);close()}; drawPath(p, color, style = style)
                 }
                 Glyph.STAR -> {
-                    val p=Path(); for(i in 0..9){val a=(-Math.PI/2+i*Math.PI/5).toFloat();val r=if(i%2==0)s*.36f else s*.16f;val x=s*.5f+kotlin.math.cos(a)*r;val y=s*.5f+kotlin.math.sin(a)*r;if(i==0)p.moveTo(x,y)else p.lineTo(x,y)};p.close();drawPath(p,color,style)
+                    val p=Path(); for(i in 0..9){val a=(-Math.PI/2+i*Math.PI/5).toFloat();val r=if(i%2==0)s*.36f else s*.16f;val x=s*.5f+kotlin.math.cos(a)*r;val y=s*.5f+kotlin.math.sin(a)*r;if(i==0)p.moveTo(x,y)else p.lineTo(x,y)};p.close();drawPath(p, color, style = style)
                 }
                 Glyph.PERSON -> { drawCircle(color,s*.16f,Offset(s*.5f,s*.32f),style=style);drawArc(color,200f,140f,false,Offset(s*.18f,s*.5f),androidx.compose.ui.geometry.Size(s*.64f,s*.42f),style=style) }
                 Glyph.PLUS -> { line(.5f,.18f,.5f,.82f);line(.18f,.5f,.82f,.5f) }
                 Glyph.SEARCH -> { drawCircle(color,s*.25f,Offset(s*.43f,s*.43f),style=style);line(.62f,.62f,.84f,.84f) }
                 Glyph.NOTE -> { drawRoundRect(color,Offset(s*.22f,s*.14f),androidx.compose.ui.geometry.Size(s*.56f,s*.72f),CornerRadius(s*.08f),style=style);line(.34f,.37f,.66f,.37f);line(.34f,.52f,.66f,.52f);line(.34f,.67f,.56f,.67f) }
                 Glyph.LINK -> { drawArc(color,135f,180f,false,Offset(s*.1f,s*.34f),androidx.compose.ui.geometry.Size(s*.48f,s*.36f),style=style);drawArc(color,-45f,180f,false,Offset(s*.42f,s*.3f),androidx.compose.ui.geometry.Size(s*.48f,s*.36f),style=style);line(.37f,.61f,.63f,.39f) }
-                Glyph.IMAGE -> { drawRoundRect(color,Offset(s*.14f,s*.18f),androidx.compose.ui.geometry.Size(s*.72f,s*.64f),CornerRadius(s*.08f),style=style);drawCircle(color,s*.07f,Offset(s*.67f,s*.37f),style=style);val p=Path().apply{moveTo(s*.2f,s*.72f);lineTo(s*.4f,s*.5f);lineTo(s*.53f,s*.63f);lineTo(s*.64f,s*.53f);lineTo(s*.82f,s*.72f)};drawPath(p,color,style) }
-                Glyph.VIDEO -> { drawRoundRect(color,Offset(s*.13f,s*.23f),androidx.compose.ui.geometry.Size(s*.55f,s*.54f),CornerRadius(s*.08f),style=style);val p=Path().apply{moveTo(s*.68f,s*.4f);lineTo(s*.87f,s*.3f);lineTo(s*.87f,s*.7f);lineTo(s*.68f,s*.6f);close()};drawPath(p,color,style) }
-                Glyph.FILE -> { val p=Path().apply{moveTo(s*.25f,s*.1f);lineTo(s*.62f,s*.1f);lineTo(s*.78f,s*.27f);lineTo(s*.78f,s*.88f);lineTo(s*.25f,s*.88f);close();moveTo(s*.62f,s*.1f);lineTo(s*.62f,s*.28f);lineTo(s*.78f,s*.28f)};drawPath(p,color,style) }
-                Glyph.INBOX -> { val p=Path().apply{moveTo(s*.16f,s*.23f);lineTo(s*.84f,s*.23f);lineTo(s*.9f,s*.73f);lineTo(s*.62f,s*.73f);quadraticTo(s*.58f,s*.84f,s*.5f,s*.84f);quadraticTo(s*.42f,s*.84f,s*.38f,s*.73f);lineTo(s*.1f,s*.73f);close()};drawPath(p,color,style);line(.32f,.48f,.68f,.48f) }
+                Glyph.IMAGE -> { drawRoundRect(color,Offset(s*.14f,s*.18f),androidx.compose.ui.geometry.Size(s*.72f,s*.64f),CornerRadius(s*.08f),style=style);drawCircle(color,s*.07f,Offset(s*.67f,s*.37f),style=style);val p=Path().apply{moveTo(s*.2f,s*.72f);lineTo(s*.4f,s*.5f);lineTo(s*.53f,s*.63f);lineTo(s*.64f,s*.53f);lineTo(s*.82f,s*.72f)};drawPath(p, color, style = style) }
+                Glyph.VIDEO -> { drawRoundRect(color,Offset(s*.13f,s*.23f),androidx.compose.ui.geometry.Size(s*.55f,s*.54f),CornerRadius(s*.08f),style=style);val p=Path().apply{moveTo(s*.68f,s*.4f);lineTo(s*.87f,s*.3f);lineTo(s*.87f,s*.7f);lineTo(s*.68f,s*.6f);close()};drawPath(p, color, style = style) }
+                Glyph.FILE -> { val p=Path().apply{moveTo(s*.25f,s*.1f);lineTo(s*.62f,s*.1f);lineTo(s*.78f,s*.27f);lineTo(s*.78f,s*.88f);lineTo(s*.25f,s*.88f);close();moveTo(s*.62f,s*.1f);lineTo(s*.62f,s*.28f);lineTo(s*.78f,s*.28f)};drawPath(p, color, style = style) }
+                Glyph.INBOX -> { val p=Path().apply{moveTo(s*.16f,s*.23f);lineTo(s*.84f,s*.23f);lineTo(s*.9f,s*.73f);lineTo(s*.62f,s*.73f);quadraticTo(s*.58f,s*.84f,s*.5f,s*.84f);quadraticTo(s*.42f,s*.84f,s*.38f,s*.73f);lineTo(s*.1f,s*.73f);close()};drawPath(p, color, style = style);line(.32f,.48f,.68f,.48f) }
                 Glyph.CHECK -> { line(.2f,.52f,.42f,.74f);line(.42f,.74f,.82f,.28f) }
                 Glyph.CLOSE -> { line(.23f,.23f,.77f,.77f);line(.77f,.23f,.23f,.77f) }
                 Glyph.MORE -> { listOf(.25f,.5f,.75f).forEach{drawCircle(color,s*.055f,Offset(s*it,s*.5f))} }
                 Glyph.ARCHIVE -> { drawRect(color,Offset(s*.18f,s*.33f),androidx.compose.ui.geometry.Size(s*.64f,s*.48f),style=style);drawRect(color,Offset(s*.13f,s*.19f),androidx.compose.ui.geometry.Size(s*.74f,s*.15f),style=style);line(.39f,.52f,.61f,.52f) }
                 Glyph.BACK -> { line(.7f,.2f,.3f,.5f);line(.3f,.5f,.7f,.8f) }
                 Glyph.GLOBE -> { drawCircle(color,s*.36f,Offset(s*.5f,s*.5f),style=style);drawOval(color,Offset(s*.35f,s*.14f),androidx.compose.ui.geometry.Size(s*.3f,s*.72f),style=style);line(.15f,.5f,.85f,.5f) }
-                Glyph.MOON -> { val p=Path().apply{arcTo(Rect(s*.2f,s*.12f,s*.82f,s*.86f),60f,250f,false);quadraticTo(s*.22f,s*.73f,s*.2f,s*.12f);close()};drawPath(p,color,style) }
+                Glyph.MOON -> { val p=Path().apply{arcTo(Rect(s*.2f,s*.12f,s*.82f,s*.86f),60f,250f,false);quadraticTo(s*.22f,s*.73f,s*.2f,s*.12f);close()};drawPath(p, color, style = style) }
                 Glyph.LOCK -> { drawRoundRect(color,Offset(s*.22f,s*.4f),androidx.compose.ui.geometry.Size(s*.56f,s*.44f),CornerRadius(s*.08f),style=style);drawArc(color,180f,180f,false,Offset(s*.32f,s*.12f),androidx.compose.ui.geometry.Size(s*.36f,s*.48f),style=style) }
                 Glyph.TRASH -> { drawRect(color,Offset(s*.28f,s*.28f),androidx.compose.ui.geometry.Size(s*.44f,s*.55f),style=style);line(.2f,.28f,.8f,.28f);line(.4f,.16f,.6f,.16f);line(.42f,.4f,.42f,.7f);line(.58f,.4f,.58f,.7f) }
                 Glyph.EDIT -> { line(.22f,.75f,.32f,.53f);line(.32f,.53f,.68f,.17f);line(.68f,.17f,.82f,.31f);line(.82f,.31f,.46f,.67f);line(.46f,.67f,.22f,.75f) }
