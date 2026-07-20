@@ -60,6 +60,22 @@ class SavioRepository private constructor(context: Context) {
         }
     }
 
+    fun moveFolder(folderId: String, direction: Int) {
+        if (folderId == SavioIds.INBOX || direction == 0) return
+        mutate { current ->
+            val source = current.folders.indexOfFirst { it.id == folderId }
+            val target = source + direction.coerceIn(-1, 1)
+            if (source < 0 || target !in current.folders.indices || current.folders[target].isSystem) {
+                current
+            } else {
+                val reordered = current.folders.toMutableList()
+                val folder = reordered.removeAt(source)
+                reordered.add(target, folder)
+                current.copy(folders = reordered)
+            }
+        }
+    }
+
     fun addNote(title: String, body: String, folderId: String = SavioIds.INBOX): String {
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
@@ -77,18 +93,20 @@ class SavioRepository private constructor(context: Context) {
         return id
     }
 
-    fun addLink(rawText: String, folderId: String = SavioIds.INBOX): String {
+    fun addLink(rawText: String, folderId: String = SavioIds.INBOX, comment: String = ""): String {
         val value = rawText.trim()
         val url = extractUrl(value)
         val now = System.currentTimeMillis()
         val id = UUID.randomUUID().toString()
         val title = url?.let(::hostTitle) ?: value.lineSequence().firstOrNull().orEmpty().take(80)
+        val sharedCaption = if (url != null && value != url) value else ""
+        val description = listOf(comment.trim(), sharedCaption).filter { it.isNotBlank() }.distinct().joinToString("\n\n")
         val item = SavioItem(
             id = id,
             folderId = validFolder(folderId),
             type = if (url != null) SavioItemType.LINK else SavioItemType.NOTE,
             title = title.ifBlank { if (isEnglish()) "Saved text" else "Сохранённый текст" },
-            description = if (url != null && value != url) value else "",
+            description = description,
             sourceUrl = url.orEmpty(),
             createdAt = now,
             updatedAt = now

@@ -71,13 +71,27 @@ private fun QuickAction(glyph: Glyph, title: String, subtitle: String, onClick: 
 }
 
 @Composable
-fun AddLinkDialog(copy: SavioCopy, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+fun AddLinkDialog(copy: SavioCopy, onDismiss: () -> Unit, onSave: (String, String) -> Unit) {
     var value by remember { mutableStateOf("") }
+    var comment by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(copy.t("Сохранить ссылку", "Save a link"), fontWeight = FontWeight.Black) },
-        text = { OutlinedTextField(value, { value = it }, placeholder = { Text("https://…") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), minLines = 2) },
-        confirmButton = { TextButton(enabled = value.isNotBlank(), onClick = { onSave(value) }) { Text(copy.t("Сохранить", "Save"), fontWeight = FontWeight.Bold) } },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                OutlinedTextField(value, { value = it }, label = { Text(copy.t("Ссылка", "Link")) }, placeholder = { Text("https://…") }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp), minLines = 2)
+                OutlinedTextField(
+                    comment,
+                    { comment = it },
+                    label = { Text(copy.t("Комментарий", "Comment")) },
+                    placeholder = { Text(copy.t("Что здесь важно?", "What matters here?")) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp),
+                    minLines = 2
+                )
+            }
+        },
+        confirmButton = { TextButton(enabled = value.isNotBlank(), onClick = { onSave(value, comment) }) { Text(copy.t("Сохранить", "Save"), fontWeight = FontWeight.Bold) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(copy.t("Отмена", "Cancel")) } }
     )
 }

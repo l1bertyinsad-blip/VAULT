@@ -126,7 +126,7 @@ fun ProfileScreen(
             }
         }
         item {
-            Text("SAVIO for Android · 1.2.0", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxWidth())
+            Text("SAVIO for Android · 1.3.0", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxWidth())
         }
     }
 

@@ -3,6 +3,11 @@ package com.nevsk1y.savio.ui
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -10,6 +15,7 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,12 +44,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.nevsk1y.savio.R
 import com.nevsk1y.savio.ui.theme.SavioBlue
 import kotlinx.coroutines.delay
 
@@ -65,8 +75,10 @@ fun BrandIntro(onFinished: () -> Unit) {
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.scale(scale.value).alpha(alpha.value)) {
-            SavioMark(Modifier.size(130.dp), Color.White)
-            Spacer(Modifier.height(18.dp))
+            Box(Modifier.size(150.dp), contentAlignment = Alignment.Center) {
+                SavioMark(Modifier.size(118.dp), Color.White)
+            }
+            Spacer(Modifier.height(10.dp))
             Text("SAVIO", color = Color.White, fontWeight = FontWeight.Black, fontSize = 38.sp, letterSpacing = (-1.2).sp)
             Text(
                 "Сохраняй важное. Возвращайся к идеям.",
@@ -79,6 +91,7 @@ fun BrandIntro(onFinished: () -> Unit) {
 }
 
 private data class OnboardingPage(
+    val imageRes: Int,
     val glyph: Glyph,
     val titleRu: String,
     val titleEn: String,
@@ -93,9 +106,9 @@ private data class OnboardingPage(
 )
 
 private val onboardingPages = listOf(
-    OnboardingPage(Glyph.LINK, "Сохраняй прямо из ленты", "Save straight from your feed", "Нажми «Поделиться» в Instagram, браузере или галерее — и выбери SAVIO.", "Tap Share in Instagram, your browser or gallery — then choose SAVIO.", "Instagram", "Instagram", "Сохранено", "Saved", Color(0xFF0766FF), Color(0xFF694BFA)),
-    OnboardingPage(Glyph.FOLDER, "Каждая идея на своём месте", "Every idea in its place", "Рецепты, поездки и вдохновение лежат в понятных папках, а не теряются среди скриншотов.", "Recipes, trips and inspiration live in clear folders instead of getting lost among screenshots.", "Идеи", "Ideas", "Рецепты", "Recipes", Color(0xFF694BFA), Color(0xFF9A55F7)),
-    OnboardingPage(Glyph.SEARCH, "Помни, зачем сохранил", "Remember why you saved it", "Добавь пару слов к материалу. SAVIO поможет быстро вернуть не только файл, но и твою мысль.", "Add a few words. SAVIO helps you recover not just the file, but your thought.", "Моя мысль", "My thought", "Найдено", "Found", Color(0xFFFF7A30), Color(0xFFFFB329))
+    OnboardingPage(R.drawable.onboarding_save, Glyph.LINK, "Сохраняй прямо из ленты", "Save straight from your feed", "Нажми «Поделиться» в Instagram, браузере или галерее — и выбери SAVIO.", "Tap Share in Instagram, your browser or gallery — then choose SAVIO.", "Instagram", "Instagram", "Сохранено", "Saved", Color(0xFF0766FF), Color(0xFF694BFA)),
+    OnboardingPage(R.drawable.onboarding_organize, Glyph.FOLDER, "Каждая идея на своём месте", "Every idea in its place", "Рецепты, поездки и вдохновение лежат в понятных папках, а не теряются среди скриншотов.", "Recipes, trips and inspiration live in clear folders instead of getting lost among screenshots.", "Идеи", "Ideas", "Рецепты", "Recipes", Color(0xFF694BFA), Color(0xFF9A55F7)),
+    OnboardingPage(R.drawable.onboarding_comment, Glyph.EDIT, "Добавляй свою мысль", "Add your own thought", "Оставь комментарий к ссылке, фото или видео — и сразу вспомни, почему это было важно.", "Add a comment to a link, photo or video and instantly remember why it mattered.", "Комментарий", "Comment", "Не забудется", "Remembered", Color(0xFFFF7A30), Color(0xFFFFB329))
 )
 
 @Composable
@@ -166,6 +179,13 @@ fun Onboarding(copy: SavioCopy, onComplete: () -> Unit) {
 
 @Composable
 private fun OnboardingArtwork(item: OnboardingPage, copy: SavioCopy) {
+    val motion = rememberInfiniteTransition(label = "onboarding-float")
+    val lift by motion.animateFloat(
+        initialValue = -5f,
+        targetValue = 5f,
+        animationSpec = infiniteRepeatable(tween(2600, easing = LinearEasing), RepeatMode.Reverse),
+        label = "artwork-lift"
+    )
     Surface(
         modifier = Modifier.fillMaxWidth().height(252.dp),
         shape = RoundedCornerShape(38.dp),
@@ -174,21 +194,33 @@ private fun OnboardingArtwork(item: OnboardingPage, copy: SavioCopy) {
         shadowElevation = 4.dp
     ) {
         Box(
-            Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.linearGradient(
-                        listOf(item.colorA.copy(alpha = .08f), MaterialTheme.colorScheme.surface, item.colorB.copy(alpha = .14f))
-                    )
-                )
+            Modifier.fillMaxSize()
         ) {
+            Image(
+                painter = painterResource(item.imageRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Black.copy(alpha = .04f), Color.Black.copy(alpha = .14f), Color.Black.copy(alpha = .30f))
+                        )
+                    )
+            )
             FloatingLabel(
                 text = copy.t(item.chipOneRu, item.chipOneEn),
                 color = item.colorA,
                 modifier = Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 24.dp)
             )
             Surface(
-                modifier = Modifier.align(Alignment.Center).size(132.dp),
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(122.dp)
+                    .graphicsLayer { translationY = lift },
                 shape = RoundedCornerShape(38.dp),
                 color = Color.Transparent,
                 shadowElevation = 14.dp

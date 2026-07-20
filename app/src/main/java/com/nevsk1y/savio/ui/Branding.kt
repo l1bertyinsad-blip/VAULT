@@ -63,7 +63,7 @@ fun SavioWordmark(modifier: Modifier = Modifier, compact: Boolean = false) {
     }
 }
 
-enum class Glyph { HOME, FOLDER, STAR, PERSON, PLUS, SEARCH, NOTE, LINK, IMAGE, VIDEO, FILE, INBOX, CHECK, CLOSE, MORE, ARCHIVE, BACK, GLOBE, MOON, LOCK, TRASH, EDIT, MOVE }
+enum class Glyph { HOME, FOLDER, STAR, PERSON, PLUS, SEARCH, NOTE, LINK, IMAGE, VIDEO, FILE, INBOX, CHECK, CLOSE, MORE, ARCHIVE, BACK, UP, DOWN, GLOBE, MOON, LOCK, TRASH, EDIT, MOVE }
 
 @Composable
 fun SavioGlyph(
@@ -102,6 +102,8 @@ fun SavioGlyph(
                 Glyph.MORE -> { listOf(.25f,.5f,.75f).forEach{drawCircle(color,s*.055f,Offset(s*it,s*.5f))} }
                 Glyph.ARCHIVE -> { drawRect(color,Offset(s*.18f,s*.33f),androidx.compose.ui.geometry.Size(s*.64f,s*.48f),style=style);drawRect(color,Offset(s*.13f,s*.19f),androidx.compose.ui.geometry.Size(s*.74f,s*.15f),style=style);line(.39f,.52f,.61f,.52f) }
                 Glyph.BACK -> { line(.7f,.2f,.3f,.5f);line(.3f,.5f,.7f,.8f) }
+                Glyph.UP -> { line(.2f,.66f,.5f,.34f);line(.5f,.34f,.8f,.66f) }
+                Glyph.DOWN -> { line(.2f,.34f,.5f,.66f);line(.5f,.66f,.8f,.34f) }
                 Glyph.GLOBE -> { drawCircle(color,s*.36f,Offset(s*.5f,s*.5f),style=style);drawOval(color,Offset(s*.35f,s*.14f),androidx.compose.ui.geometry.Size(s*.3f,s*.72f),style=style);line(.15f,.5f,.85f,.5f) }
                 Glyph.MOON -> { val p=Path().apply{arcTo(Rect(s*.2f,s*.12f,s*.82f,s*.86f),60f,250f,false);quadraticTo(s*.22f,s*.73f,s*.2f,s*.12f);close()};drawPath(p, color, style = style) }
                 Glyph.LOCK -> { drawRoundRect(color,Offset(s*.22f,s*.4f),androidx.compose.ui.geometry.Size(s*.56f,s*.44f),CornerRadius(s*.08f),style=style);drawArc(color,180f,180f,false,Offset(s*.32f,s*.12f),androidx.compose.ui.geometry.Size(s*.36f,s*.48f),style=style) }

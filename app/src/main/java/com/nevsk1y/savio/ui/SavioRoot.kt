@@ -7,6 +7,9 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -32,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,7 +70,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private enum class TopTab(val glyph: Glyph) { HOME(Glyph.HOME), FOLDERS(Glyph.FOLDER), FAVORITES(Glyph.STAR), PROFILE(Glyph.PERSON) }
-private const val OnboardingVersion = 2
+private const val OnboardingVersion = 3
 
 private sealed interface Route {
     data object Main : Route
@@ -81,13 +85,11 @@ private sealed interface Route {
 fun SavioRoot(repository: SavioRepository, shareEvent: ShareImportEvent?, consumeShareEvent: () -> Unit) {
     val state by repository.state.collectAsState()
     val context = LocalContext.current
-    var introFinished by rememberSaveable { mutableStateOf(false) }
+    val onboardingPreferences = remember(context) { context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE) }
     var onboardingFinished by rememberSaveable {
-        mutableStateOf(
-            context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE)
-                .getInt("onboarding_version", 0) >= OnboardingVersion
-        )
+        mutableStateOf(onboardingPreferences.getInt("onboarding_version", 0) >= OnboardingVersion)
     }
+    var introFinished by rememberSaveable { mutableStateOf(onboardingFinished) }
     val copy = SavioCopy(state.settings.language)
 
     SavioTheme(state.settings.theme) {
@@ -103,8 +105,7 @@ fun SavioRoot(repository: SavioRepository, shareEvent: ShareImportEvent?, consum
             when (step) {
                 0 -> BrandIntro { introFinished = true }
                 1 -> Onboarding(copy) {
-                    context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE)
-                        .edit()
+                    onboardingPreferences.edit()
                         .putInt("onboarding_version", OnboardingVersion)
                         .apply()
                     onboardingFinished = true
@@ -138,10 +139,14 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
         previousRoute = Route.Main
     }
     fun destinationFolder(): String = (route as? Route.Folder)?.id ?: SavioIds.INBOX
-    fun announceImport(count: Int) {
+    fun announceImport(count: Int, itemId: String? = null) {
         if (count <= 0) return
         scope.launch {
-            snackbar.showSnackbar(copy.t("Сохранено во Входящие: $count", "Saved to Inbox: $count"))
+            val result = snackbar.showSnackbar(
+                message = copy.t("Сохранено: $count", "Saved: $count"),
+                actionLabel = itemId?.let { copy.t("Комментарий", "Comment") }
+            )
+            if (result == SnackbarResult.ActionPerformed && itemId != null) navigate(Route.Item(itemId))
         }
     }
     fun importUris(uris: List<Uri>) {
@@ -150,9 +155,10 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
         val folderId = destinationFolder()
         scope.launch(Dispatchers.IO) {
             val count = repository.importUris(uris, folderId)
+            val newestId = repository.state.value.items.maxByOrNull { it.createdAt }?.id
             withContext(Dispatchers.Main) {
                 isImporting = false
-                announceImport(count)
+                announceImport(count, newestId)
             }
         }
     }
@@ -162,7 +168,12 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
 
     LaunchedEffect(shareEvent?.token) {
         shareEvent ?: return@LaunchedEffect
-        snackbar.showSnackbar(copy.t("Сохранено из другого приложения: ${shareEvent.count}", "Saved from another app: ${shareEvent.count}"))
+        val newestId = repository.state.value.items.maxByOrNull { it.createdAt }?.id
+        val result = snackbar.showSnackbar(
+            message = copy.t("Сохранено из другого приложения: ${shareEvent.count}", "Saved from another app: ${shareEvent.count}"),
+            actionLabel = newestId?.let { copy.t("Комментарий", "Comment") }
+        )
+        if (result == SnackbarResult.ActionPerformed && newestId != null) navigate(Route.Item(newestId))
         consumeShareEvent()
     }
 
@@ -182,20 +193,34 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(top = padding.calculateTopPadding(), bottom = if (route == Route.Main) 0.dp else padding.calculateBottomPadding())) {
             when (val current = route) {
-                Route.Main -> when (selectedTab) {
-                    TopTab.HOME -> HomeScreen(
-                        state, copy,
-                        onAdd = { quickAdd = true },
-                        onSearch = { navigate(Route.Search) },
-                        onOpenFolder = { navigate(Route.Folder(it)) },
-                        onOpenItem = { navigate(Route.Item(it)) },
-                        onFavorite = repository::toggleFavorite,
-                        onOpenFavorites = { selectedTab = TopTab.FAVORITES },
-                        onOpenAllFolders = { selectedTab = TopTab.FOLDERS }
-                    )
-                    TopTab.FOLDERS -> FoldersScreen(state, copy, { navigate(Route.Folder(it)) }, { editDialog = EditDialog.CREATE_FOLDER })
-                    TopTab.FAVORITES -> FavoritesScreen(state, copy, { navigate(Route.Item(it)) }, repository::toggleFavorite)
-                    TopTab.PROFILE -> ProfileScreen(state, repository, copy, { navigate(Route.Notes) }, { navigate(Route.Archive) })
+                Route.Main -> AnimatedContent(
+                    targetState = selectedTab,
+                    transitionSpec = { fadeIn(tween(180)) togetherWith fadeOut(tween(120)) },
+                    label = "main-tabs"
+                ) { tab ->
+                    when (tab) {
+                        TopTab.HOME -> HomeScreen(
+                            state, copy,
+                            onAdd = { quickAdd = true },
+                            onSearch = { navigate(Route.Search) },
+                            onOpenFolder = { navigate(Route.Folder(it)) },
+                            onOpenItem = { navigate(Route.Item(it)) },
+                            onFavorite = repository::toggleFavorite,
+                            onOpenFavorites = { selectedTab = TopTab.FAVORITES },
+                            onOpenAllFolders = { selectedTab = TopTab.FOLDERS }
+                        )
+                        TopTab.FOLDERS -> FoldersScreen(
+                            state = state,
+                            copy = copy,
+                            onOpenFolder = { navigate(Route.Folder(it)) },
+                            onCreateFolder = { editDialog = EditDialog.CREATE_FOLDER },
+                            onRename = { renameFolder = it },
+                            onDelete = repository::deleteFolder,
+                            onMove = repository::moveFolder
+                        )
+                        TopTab.FAVORITES -> FavoritesScreen(state, copy, { navigate(Route.Item(it)) }, repository::toggleFavorite)
+                        TopTab.PROFILE -> ProfileScreen(state, repository, copy, { navigate(Route.Notes) }, { navigate(Route.Archive) })
+                    }
                 }
                 is Route.Folder -> FolderDetailScreen(current.id, state, copy, ::goBack, { navigate(Route.Item(it)) }, repository::toggleFavorite, { quickAdd = true }, { renameFolder = it })
                 is Route.Item -> ItemDetailScreen(current.id, state, repository, copy, ::goBack)
@@ -234,10 +259,10 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
     )
 
     when (editDialog) {
-        EditDialog.LINK -> AddLinkDialog(copy, { editDialog = EditDialog.NONE }) {
-            repository.addLink(it, destinationFolder())
+        EditDialog.LINK -> AddLinkDialog(copy, { editDialog = EditDialog.NONE }) { link, comment ->
+            val id = repository.addLink(link, destinationFolder(), comment)
             editDialog = EditDialog.NONE
-            announceImport(1)
+            navigate(Route.Item(id))
         }
         EditDialog.NOTE -> AddNoteDialog(copy, { editDialog = EditDialog.NONE }) { title, body ->
             repository.addNote(title, body, destinationFolder())
@@ -302,6 +327,9 @@ private fun BottomTab(tab: TopTab, selected: TopTab, onSelect: (TopTab) -> Unit,
         TopTab.FAVORITES -> strings.t("Избранное", "Favorites")
         TopTab.PROFILE -> strings.t("Профиль", "Profile")
     }
+    val isSelected = tab == selected
+    val iconSize by animateDpAsState(if (isSelected) 27.dp else 24.dp, label = "bottom-icon-size")
+    val tint by animateColorAsState(if (isSelected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant, label = "bottom-icon-color")
     Column(
         modifier
             .clip(RoundedCornerShape(18.dp))
@@ -310,12 +338,12 @@ private fun BottomTab(tab: TopTab, selected: TopTab, onSelect: (TopTab) -> Unit,
             .semantics { contentDescription = copy },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SavioGlyph(tab.glyph, Modifier.size(25.dp), if (tab == selected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant, stroke = 2.2.dp)
+        SavioGlyph(tab.glyph, Modifier.size(iconSize), tint, stroke = 2.2.dp)
         Spacer(Modifier.height(5.dp))
         Text(
             copy,
-            color = if (tab == selected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant,
-            fontWeight = if (tab == selected) FontWeight.Black else FontWeight.Medium,
+            color = tint,
+            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Medium,
             fontSize = 11.sp,
             maxLines = 1
         )

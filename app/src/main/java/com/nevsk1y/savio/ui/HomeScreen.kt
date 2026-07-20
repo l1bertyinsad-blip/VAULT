@@ -34,7 +34,10 @@ fun HomeScreen(
     val recentItems = visibleItems.sortedByDescending { it.createdAt }.take(5)
     val inboxCount = visibleItems.count { it.folderId == SavioIds.INBOX }
     val favorites = visibleItems.count { it.isFavorite }
-    val folderRows = state.folders.take(4).chunked(2)
+    val folderRows = state.folders
+        .filterNot { it.id == SavioIds.INBOX }
+        .take(4)
+        .chunked(2)
 
     LazyColumn(
         modifier = Modifier.fillMaxWidth(),

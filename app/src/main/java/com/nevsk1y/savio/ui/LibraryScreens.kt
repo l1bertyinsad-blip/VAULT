@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -29,6 +30,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -45,6 +47,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -77,25 +81,130 @@ fun ScreenHeader(title: String, copy: SavioCopy, onBack: (() -> Unit)? = null, a
 }
 
 @Composable
-fun FoldersScreen(state: SavioState, copy: SavioCopy, onOpenFolder: (String) -> Unit, onCreateFolder: () -> Unit) {
+fun FoldersScreen(
+    state: SavioState,
+    copy: SavioCopy,
+    onOpenFolder: (String) -> Unit,
+    onCreateFolder: () -> Unit,
+    onRename: (SavioFolder) -> Unit,
+    onDelete: (String) -> Unit,
+    onMove: (String, Int) -> Unit
+) {
+    var editing by remember { mutableStateOf(false) }
+    var pendingDelete by remember { mutableStateOf<SavioFolder?>(null) }
+    val userFolders = state.folders.filterNot { it.isSystem }
     Column(Modifier.fillMaxSize()) {
         ScreenHeader(copy.t("Мои папки", "My folders"), copy, action = Glyph.PLUS to onCreateFolder)
-        Text(
-            copy.t("Порядок для всего, что хочется не потерять.", "A home for everything worth keeping."),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(horizontal = 18.dp)
-        )
-        Spacer(Modifier.height(16.dp))
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 118.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            items(state.folders, key = { it.id }) { folder ->
-                FolderCard(folder, state.items.count { it.folderId == folder.id && !it.isArchived }, copy, { onOpenFolder(folder.id) })
+        Row(Modifier.fillMaxWidth().padding(start = 18.dp, end = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                if (editing) copy.t("Меняй порядок, названия и лишние папки.", "Reorder, rename or remove folders.")
+                else copy.t("Порядок для всего, что хочется не потерять.", "A home for everything worth keeping."),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = { editing = !editing }) {
+                Text(if (editing) copy.t("Готово", "Done") else copy.t("Изменить", "Edit"), fontWeight = FontWeight.ExtraBold)
             }
         }
+        Spacer(Modifier.height(16.dp))
+        if (editing) {
+            LazyColumn(
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 118.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                state.folders.firstOrNull { it.isSystem }?.let { inbox ->
+                    item(key = inbox.id) { PinnedFolderRow(inbox, copy) }
+                }
+                itemsIndexed(userFolders, key = { _, folder -> folder.id }) { index, folder ->
+                    FolderManagementRow(
+                        folder = folder,
+                        copy = copy,
+                        canMoveUp = index > 0,
+                        canMoveDown = index < userFolders.lastIndex,
+                        onMoveUp = { onMove(folder.id, -1) },
+                        onMoveDown = { onMove(folder.id, 1) },
+                        onRename = { onRename(folder) },
+                        onDelete = { pendingDelete = folder }
+                    )
+                }
+            }
+        } else {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                contentPadding = PaddingValues(start = 18.dp, end = 18.dp, bottom = 118.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.folders, key = { it.id }) { folder ->
+                    FolderCard(folder, state.items.count { it.folderId == folder.id && !it.isArchived }, copy, { onOpenFolder(folder.id) })
+                }
+            }
+        }
+    }
+
+    pendingDelete?.let { folder ->
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text(copy.t("Удалить папку?", "Delete folder?"), fontWeight = FontWeight.Black) },
+            text = { Text(copy.t("Материалы из неё не удалятся — они переместятся во «Входящие».", "Its items won't be deleted — they will move to Inbox.")) },
+            confirmButton = {
+                TextButton(onClick = { onDelete(folder.id); pendingDelete = null }) {
+                    Text(copy.t("Удалить", "Delete"), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = { TextButton(onClick = { pendingDelete = null }) { Text(copy.t("Отмена", "Cancel")) } }
+        )
+    }
+}
+
+@Composable
+private fun PinnedFolderRow(folder: SavioFolder, copy: SavioCopy) {
+    Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
+        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(46.dp).clip(RoundedCornerShape(15.dp)).background(SavioBlue), contentAlignment = Alignment.Center) {
+                SavioGlyph(Glyph.INBOX, Modifier.size(24.dp), Color.White)
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(folder.displayName(copy), fontWeight = FontWeight.ExtraBold)
+                Text(copy.t("Системная папка · закреплена", "System folder · pinned"), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+            }
+            SavioGlyph(Glyph.LOCK, Modifier.size(19.dp), MaterialTheme.colorScheme.outline)
+        }
+    }
+}
+
+@Composable
+private fun FolderManagementRow(
+    folder: SavioFolder,
+    copy: SavioCopy,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit,
+    onRename: () -> Unit,
+    onDelete: () -> Unit
+) {
+    val color = parseColor(folder.color)
+    Surface(shape = RoundedCornerShape(22.dp), color = MaterialTheme.colorScheme.surface) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 13.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(45.dp).clip(RoundedCornerShape(15.dp)).background(color), contentAlignment = Alignment.Center) {
+                SavioGlyph(Glyph.FOLDER, Modifier.size(23.dp), Color.White)
+            }
+            Spacer(Modifier.width(10.dp))
+            Text(folder.displayName(copy), fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f))
+            FolderControl(Glyph.UP, copy.t("Выше", "Move up"), canMoveUp, onMoveUp)
+            FolderControl(Glyph.DOWN, copy.t("Ниже", "Move down"), canMoveDown, onMoveDown)
+            FolderControl(Glyph.EDIT, copy.t("Переименовать", "Rename"), true, onRename)
+            FolderControl(Glyph.TRASH, copy.t("Удалить", "Delete"), true, onDelete, MaterialTheme.colorScheme.error)
+        }
+    }
+}
+
+@Composable
+private fun FolderControl(glyph: Glyph, label: String, enabled: Boolean, onClick: () -> Unit, color: Color = MaterialTheme.colorScheme.onSurfaceVariant) {
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(36.dp).semantics { contentDescription = label }) {
+        SavioGlyph(glyph, Modifier.size(18.dp), if (enabled) color else MaterialTheme.colorScheme.outline.copy(alpha = .35f), stroke = 2.1.dp)
     }
 }
 
@@ -232,8 +341,16 @@ fun ItemDetailScreen(itemId: String, state: SavioState, repository: SavioReposit
         item {
             Column(Modifier.padding(horizontal = 18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(title, { title = it }, Modifier.fillMaxWidth(), label = { Text(copy.t("Название", "Title")) }, shape = RoundedCornerShape(17.dp))
-                OutlinedTextField(description, { description = it }, Modifier.fillMaxWidth(), label = { Text(copy.t("Описание", "Description")) }, minLines = 3, shape = RoundedCornerShape(17.dp))
-                OutlinedTextField(thought, { thought = it }, Modifier.fillMaxWidth(), label = { Text(copy.t("Почему я это сохранил", "Why I saved this")) }, minLines = 2, shape = RoundedCornerShape(17.dp))
+                OutlinedTextField(
+                    description,
+                    { description = it },
+                    Modifier.fillMaxWidth(),
+                    label = { Text(copy.t("Комментарий к материалу", "Comment on this item")) },
+                    placeholder = { Text(copy.t("Что здесь важно или что хочешь попробовать?", "What matters here or what do you want to try?")) },
+                    minLines = 4,
+                    shape = RoundedCornerShape(17.dp)
+                )
+                OutlinedTextField(thought, { thought = it }, Modifier.fillMaxWidth(), label = { Text(copy.t("Следующий шаг — необязательно", "Next step — optional")) }, minLines = 2, shape = RoundedCornerShape(17.dp))
                 SavioPrimaryButton(copy.t("Сохранить изменения", "Save changes"), { repository.updateItem(item.id, title, description, thought) }, Modifier.fillMaxWidth())
             }
         }

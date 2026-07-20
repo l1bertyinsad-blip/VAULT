@@ -1,6 +1,13 @@
 package com.nevsk1y.savio.ui
 
 import android.graphics.BitmapFactory
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,6 +112,13 @@ fun SectionHeader(title: String, action: String? = null, onAction: (() -> Unit)?
 
 @Composable
 fun SavioHeroCard(copy: SavioCopy, onAdd: () -> Unit) {
+    val motion = rememberInfiniteTransition(label = "hero-motion")
+    val glowPosition by motion.animateFloat(
+        initialValue = .68f,
+        targetValue = .92f,
+        animationSpec = infiniteRepeatable(tween(5200, easing = LinearEasing), RepeatMode.Reverse),
+        label = "hero-glow"
+    )
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(32.dp),
@@ -120,6 +134,13 @@ fun SavioHeroCard(copy: SavioCopy, onAdd: () -> Unit) {
                 )
                 .padding(horizontal = 25.dp, vertical = 27.dp)
         ) {
+            Canvas(Modifier.matchParentSize()) {
+                drawCircle(
+                    color = Color.White.copy(alpha = .065f),
+                    radius = size.width * .26f,
+                    center = androidx.compose.ui.geometry.Offset(size.width * glowPosition, size.height * .34f)
+                )
+            }
             Column(Modifier.fillMaxWidth()) {
                 Text(
                     copy.t("Всё важное —\nв одном месте.", "Everything important —\nin one place."),
@@ -162,7 +183,7 @@ fun QuickAccessCard(glyph: Glyph, value: String, label: String, color: Color, on
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 1.dp,
-        modifier = modifier
+        modifier = modifier.animateContentSize()
     ) {
         Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
@@ -185,46 +206,6 @@ fun QuickAccessCard(glyph: Glyph, value: String, label: String, color: Color, on
 }
 
 @Composable
-fun SavioFolderArtwork(color: Color, isInbox: Boolean, modifier: Modifier = Modifier) {
-    Canvas(modifier) {
-        val w = size.width
-        val h = size.height
-        val folder = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * .07f, h * .31f)
-            quadraticTo(w * .07f, h * .18f, w * .20f, h * .18f)
-            lineTo(w * .39f, h * .18f)
-            quadraticTo(w * .45f, h * .18f, w * .50f, h * .29f)
-            lineTo(w * .84f, h * .29f)
-            quadraticTo(w * .94f, h * .29f, w * .92f, h * .43f)
-            lineTo(w * .85f, h * .79f)
-            quadraticTo(w * .83f, h * .90f, w * .70f, h * .90f)
-            lineTo(w * .20f, h * .90f)
-            quadraticTo(w * .09f, h * .90f, w * .08f, h * .80f)
-            close()
-        }
-        drawPath(
-            folder,
-            Brush.linearGradient(
-                colors = listOf(color.copy(alpha = .76f), color, color.copy(alpha = .82f)),
-                start = androidx.compose.ui.geometry.Offset.Zero,
-                end = androidx.compose.ui.geometry.Offset(w, h)
-            )
-        )
-        drawLine(
-            Color.White.copy(alpha = .28f),
-            androidx.compose.ui.geometry.Offset(w * .15f, h * .40f),
-            androidx.compose.ui.geometry.Offset(w * .84f, h * .40f),
-            strokeWidth = h * .035f,
-            cap = androidx.compose.ui.graphics.StrokeCap.Round
-        )
-        if (isInbox) {
-            drawLine(Color.White, androidx.compose.ui.geometry.Offset(w * .34f, h * .64f), androidx.compose.ui.geometry.Offset(w * .66f, h * .64f), h * .04f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-            drawLine(Color.White, androidx.compose.ui.geometry.Offset(w * .41f, h * .72f), androidx.compose.ui.geometry.Offset(w * .59f, h * .72f), h * .04f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
-        }
-    }
-}
-
-@Composable
 fun FolderCard(folder: SavioFolder, count: Int, copy: SavioCopy, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val folderColor = parseColor(folder.color)
     Surface(
@@ -233,7 +214,7 @@ fun FolderCard(folder: SavioFolder, count: Int, copy: SavioCopy, onClick: () -> 
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
         shadowElevation = 1.dp,
-        modifier = modifier
+        modifier = modifier.animateContentSize()
     ) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 17.dp)) {
             Box(
@@ -268,7 +249,7 @@ fun SavioItemCard(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().animateContentSize(),
         shape = RoundedCornerShape(25.dp),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 0.dp,
@@ -292,9 +273,10 @@ fun SavioItemCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodySmall
                 )
-                if (item.thought.isNotBlank()) {
+                val commentPreview = item.description.ifBlank { item.thought }
+                if (commentPreview.isNotBlank()) {
                     Spacer(Modifier.height(5.dp))
-                    Text("“${item.thought}”", color = SavioBlue, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(commentPreview, color = SavioBlue, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             IconButton(onClick = onFavorite) {
