@@ -73,7 +73,6 @@ private sealed interface Route {
     data class Item(val id: String) : Route
     data object Search : Route
     data object Notes : Route
-    data object Feed : Route
     data object Archive : Route
 }
 
@@ -185,7 +184,7 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
                         onOpenItem = { navigate(Route.Item(it)) },
                         onFavorite = repository::toggleFavorite,
                         onOpenFavorites = { selectedTab = TopTab.FAVORITES },
-                        onOpenFeed = { navigate(Route.Feed) }
+                        onOpenAllFolders = { selectedTab = TopTab.FOLDERS }
                     )
                     TopTab.FOLDERS -> FoldersScreen(state, copy, { navigate(Route.Folder(it)) }, { editDialog = EditDialog.CREATE_FOLDER })
                     TopTab.FAVORITES -> FavoritesScreen(state, copy, { navigate(Route.Item(it)) }, repository::toggleFavorite)
@@ -195,7 +194,6 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
                 is Route.Item -> ItemDetailScreen(current.id, state, repository, copy, ::goBack)
                 Route.Search -> SearchScreen(state, copy, ::goBack, { navigate(Route.Item(it)) }, repository::toggleFavorite)
                 Route.Notes -> NotesScreen(state, copy, ::goBack, { navigate(Route.Item(it)) }, repository::toggleFavorite, { editDialog = EditDialog.NOTE })
-                Route.Feed -> UsefulFeedScreen(copy, ::goBack)
                 Route.Archive -> ArchiveScreen(state, copy, ::goBack, { navigate(Route.Item(it)) }, repository::toggleArchive)
             }
 
@@ -256,18 +254,18 @@ private fun MainSavio(repository: SavioRepository, shareEvent: ShareImportEvent?
 
 @Composable
 private fun SavioBottomBar(selected: TopTab, onSelect: (TopTab) -> Unit, copy: SavioCopy, onAdd: () -> Unit) {
-    Box(Modifier.fillMaxWidth().height(98.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.BottomCenter) {
+    Box(Modifier.fillMaxWidth().height(106.dp).padding(horizontal = 12.dp), contentAlignment = Alignment.BottomCenter) {
         Surface(
-            shape = RoundedCornerShape(27.dp),
+            shape = RoundedCornerShape(29.dp),
             color = MaterialTheme.colorScheme.surface.copy(alpha = .98f),
-            shadowElevation = 16.dp,
-            tonalElevation = 2.dp,
-            modifier = Modifier.fillMaxWidth().height(77.dp)
+            shadowElevation = 20.dp,
+            tonalElevation = 1.dp,
+            modifier = Modifier.fillMaxWidth().height(84.dp)
         ) {
-            Row(Modifier.fillMaxSize().padding(horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxSize().padding(horizontal = 5.dp), verticalAlignment = Alignment.CenterVertically) {
                 BottomTab(TopTab.HOME, selected, onSelect, copy, Modifier.weight(1f))
                 BottomTab(TopTab.FOLDERS, selected, onSelect, copy, Modifier.weight(1f))
-                Spacer(Modifier.width(68.dp))
+                Spacer(Modifier.width(74.dp))
                 BottomTab(TopTab.FAVORITES, selected, onSelect, copy, Modifier.weight(1f))
                 BottomTab(TopTab.PROFILE, selected, onSelect, copy, Modifier.weight(1f))
             }
@@ -279,11 +277,11 @@ private fun SavioBottomBar(selected: TopTab, onSelect: (TopTab) -> Unit, copy: S
             contentColor = Color.White,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .size(62.dp)
+                .size(68.dp)
                 .semantics { contentDescription = "Add" }
         ) {
             Box(Modifier.fillMaxSize().background(Brush.linearGradient(listOf(SavioBlueBright, SavioBlue)), CircleShape), contentAlignment = Alignment.Center) {
-                SavioGlyph(Glyph.PLUS, Modifier.size(27.dp), Color.White, 2.8.dp)
+                SavioGlyph(Glyph.PLUS, Modifier.size(30.dp), Color.White, 3.dp)
             }
         }
     }
@@ -301,17 +299,17 @@ private fun BottomTab(tab: TopTab, selected: TopTab, onSelect: (TopTab) -> Unit,
         modifier
             .clip(RoundedCornerShape(18.dp))
             .clickable { onSelect(tab) }
-            .padding(vertical = 8.dp)
+            .padding(vertical = 9.dp)
             .semantics { contentDescription = copy },
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SavioGlyph(tab.glyph, Modifier.size(22.dp), if (tab == selected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant)
-        Spacer(Modifier.height(4.dp))
+        SavioGlyph(tab.glyph, Modifier.size(25.dp), if (tab == selected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant, stroke = 2.2.dp)
+        Spacer(Modifier.height(5.dp))
         Text(
             copy,
             color = if (tab == selected) SavioBlue else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (tab == selected) FontWeight.Black else FontWeight.Medium,
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             maxLines = 1
         )
     }

@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -199,44 +198,6 @@ fun NotesScreen(state: SavioState, copy: SavioCopy, onBack: () -> Unit, onOpenIt
         if (notes.isEmpty()) EmptyState(Glyph.NOTE, copy.t("Мысли любят запись", "Thoughts like being written down"), copy.t("Создай короткую заметку — её можно положить в любую папку.", "Create a quick note and keep it in any folder."), copy.t("Новая заметка", "New note"), onAddNote)
         else LazyColumn(contentPadding = PaddingValues(18.dp, 0.dp, 18.dp, 30.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(notes, key = { it.id }) { item -> SavioItemCard(item, copy, { onOpenItem(item.id) }, { onFavorite(item.id) }) }
-        }
-    }
-}
-
-@Composable
-fun UsefulFeedScreen(copy: SavioCopy, onBack: () -> Unit) {
-    LazyColumn(
-        contentPadding = PaddingValues(bottom = 28.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
-    ) {
-        item { ScreenHeader(copy.t("Полезный скроллинг", "Useful scrolling"), copy, onBack) }
-        item {
-            Text(
-                copy.t("Всего 7 карточек. Никакой бесконечной ленты.", "Only 7 cards. No infinite feed."),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 18.dp)
-            )
-        }
-        itemsIndexed(UsefulStories) { index, story ->
-            Column(Modifier.padding(horizontal = 18.dp)) {
-                UsefulPreviewCard(story, copy, {})
-                Spacer(Modifier.height(7.dp))
-                Text("${index + 1} / ${UsefulStories.size}", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, modifier = Modifier.align(Alignment.End))
-            }
-        }
-        item {
-            Surface(
-                shape = RoundedCornerShape(25.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.padding(horizontal = 18.dp).fillMaxWidth()
-            ) {
-                Column(Modifier.padding(22.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    SavioMark(Modifier.size(48.dp))
-                    Spacer(Modifier.height(12.dp))
-                    Text(copy.t("На сегодня хватит скроллинга", "That's enough scrolling for today"), fontWeight = FontWeight.Black, fontSize = 19.sp)
-                    Text(copy.t("Вернись к сохранённым идеям — там уже есть что применить.", "Return to your saved ideas — there is already something to use."), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 7.dp))
-                }
-            }
         }
     }
 }

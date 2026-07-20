@@ -263,7 +263,15 @@ class SavioRepository private constructor(context: Context) {
 
     private fun loadState(): SavioState {
         if (!stateFile.exists()) return seedState()
-        return runCatching { decodeState(JSONObject(stateFile.readText(Charsets.UTF_8))) }
+        return runCatching {
+            val decoded = decodeState(JSONObject(stateFile.readText(Charsets.UTF_8)))
+            if (decoded.settings.designVersion < 2) {
+                decoded.copy(settings = decoded.settings.copy(theme = "light", usefulFeedEnabled = false, designVersion = 2))
+                    .also(::saveState)
+            } else {
+                decoded
+            }
+        }
             .getOrElse { seedState() }
     }
 
@@ -329,6 +337,7 @@ class SavioRepository private constructor(context: Context) {
             put("language", state.settings.language)
             put("theme", state.settings.theme)
             put("usefulFeedEnabled", state.settings.usefulFeedEnabled)
+            put("designVersion", state.settings.designVersion)
         })
     }
 
@@ -375,8 +384,9 @@ class SavioRepository private constructor(context: Context) {
             items = items,
             settings = SavioSettings(
                 language = settingsJson.optString("language", "ru"),
-                theme = settingsJson.optString("theme", "system"),
-                usefulFeedEnabled = settingsJson.optBoolean("usefulFeedEnabled", true)
+                theme = settingsJson.optString("theme", "light"),
+                usefulFeedEnabled = settingsJson.optBoolean("usefulFeedEnabled", false),
+                designVersion = settingsJson.optInt("designVersion", 1)
             )
         )
     }

@@ -30,8 +30,9 @@ data class SavioItem(
 
 data class SavioSettings(
     val language: String = "ru",
-    val theme: String = "system",
-    val usefulFeedEnabled: Boolean = true
+    val theme: String = "light",
+    val usefulFeedEnabled: Boolean = false,
+    val designVersion: Int = 2
 )
 
 data class SavioState(

@@ -28,18 +28,20 @@ fun SavioMark(modifier: Modifier = Modifier, color: Color = SavioBlue) {
     Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
-        drawCircle(color, radius = w * 0.105f, center = Offset(w * 0.5f, h * 0.225f))
+        // The head and bookmark are deliberately separated: the gap is part of
+        // SAVIO's mark and keeps it readable even at launcher-icon size.
+        drawCircle(color, radius = w * 0.102f, center = Offset(w * 0.5f, h * 0.19f))
         val path = Path().apply {
-            moveTo(w * 0.255f, h * 0.415f)
-            quadraticTo(w * 0.255f, h * 0.34f, w * 0.34f, h * 0.34f)
-            lineTo(w * 0.66f, h * 0.34f)
-            quadraticTo(w * 0.745f, h * 0.34f, w * 0.745f, h * 0.415f)
-            lineTo(w * 0.745f, h * 0.82f)
-            quadraticTo(w * 0.745f, h * 0.855f, w * 0.71f, h * 0.825f)
-            lineTo(w * 0.525f, h * 0.675f)
-            quadraticTo(w * 0.5f, h * 0.655f, w * 0.475f, h * 0.675f)
-            lineTo(w * 0.29f, h * 0.825f)
-            quadraticTo(w * 0.255f, h * 0.855f, w * 0.255f, h * 0.82f)
+            moveTo(w * 0.24f, h * 0.435f)
+            quadraticTo(w * 0.24f, h * 0.36f, w * 0.325f, h * 0.36f)
+            lineTo(w * 0.675f, h * 0.36f)
+            quadraticTo(w * 0.76f, h * 0.36f, w * 0.76f, h * 0.435f)
+            lineTo(w * 0.76f, h * 0.83f)
+            quadraticTo(w * 0.76f, h * 0.87f, w * 0.72f, h * 0.838f)
+            lineTo(w * 0.526f, h * 0.68f)
+            quadraticTo(w * 0.5f, h * 0.658f, w * 0.474f, h * 0.68f)
+            lineTo(w * 0.28f, h * 0.838f)
+            quadraticTo(w * 0.24f, h * 0.87f, w * 0.24f, h * 0.83f)
             close()
         }
         drawPath(path, color)
@@ -49,13 +51,13 @@ fun SavioMark(modifier: Modifier = Modifier, color: Color = SavioBlue) {
 @Composable
 fun SavioWordmark(modifier: Modifier = Modifier, compact: Boolean = false) {
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        SavioMark(Modifier.size(if (compact) 27.dp else 35.dp))
-        Spacer(Modifier.width(8.dp))
+        SavioMark(Modifier.size(if (compact) 29.dp else 42.dp))
+        Spacer(Modifier.width(if (compact) 8.dp else 10.dp))
         Text(
             text = "SAVIO",
-            fontSize = if (compact) 19.sp else 25.sp,
+            fontSize = if (compact) 20.sp else 27.sp,
             fontWeight = FontWeight.Black,
-            letterSpacing = (-0.6).sp,
+            letterSpacing = (-0.75).sp,
             color = MaterialTheme.colorScheme.onBackground
         )
     }

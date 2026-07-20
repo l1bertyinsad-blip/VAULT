@@ -23,7 +23,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -103,14 +102,6 @@ fun ProfileScreen(
             }
         }
         item {
-            SettingRow(
-                glyph = Glyph.STAR,
-                title = copy.t("Полезный скроллинг", "Useful scrolling"),
-                subtitle = copy.t("Конечная лента из 7 карточек", "A finite 7-card feed"),
-                trailing = { Switch(state.settings.usefulFeedEnabled, repository::setUsefulFeedEnabled) }
-            )
-        }
-        item {
             Surface(shape = RoundedCornerShape(24.dp), color = MaterialTheme.colorScheme.primaryContainer) {
                 Row(Modifier.padding(18.dp), verticalAlignment = Alignment.Top) {
                     SavioGlyph(Glyph.LOCK, Modifier.size(25.dp), MaterialTheme.colorScheme.primary)
@@ -135,7 +126,7 @@ fun ProfileScreen(
             }
         }
         item {
-            Text("SAVIO for Android · 1.0.0", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxWidth())
+            Text("SAVIO for Android · 1.1.0", color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.labelMedium, modifier = Modifier.fillMaxWidth())
         }
     }
 

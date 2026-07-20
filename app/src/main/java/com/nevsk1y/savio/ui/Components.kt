@@ -72,12 +72,12 @@ fun SavioIconButton(glyph: Glyph, label: String, onClick: () -> Unit, modifier: 
     IconButton(
         onClick = onClick,
         modifier = modifier
-            .size(46.dp)
-            .clip(RoundedCornerShape(15.dp))
+            .size(50.dp)
+            .clip(RoundedCornerShape(17.dp))
             .background(MaterialTheme.colorScheme.surface)
             .semantics { contentDescription = label }
     ) {
-        SavioGlyph(glyph, Modifier.size(22.dp), color = MaterialTheme.colorScheme.onSurface)
+        SavioGlyph(glyph, Modifier.size(25.dp), color = MaterialTheme.colorScheme.onSurface, stroke = 2.25.dp)
     }
 }
 
@@ -107,91 +107,119 @@ fun SectionHeader(title: String, action: String? = null, onAction: (() -> Unit)?
 fun SavioHeroCard(copy: SavioCopy, onAdd: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(30.dp),
+        shape = RoundedCornerShape(32.dp),
         colors = CardDefaults.cardColors(containerColor = Color.Transparent)
     ) {
         Box(
             Modifier
+                .fillMaxWidth()
                 .background(
                     Brush.linearGradient(
-                        listOf(SavioBlue, SavioBlueBright, Color(0xFF6A5CFF))
+                        listOf(Color(0xFF075CFF), Color(0xFF315BFF), Color(0xFF7654F6))
                     )
                 )
-                .padding(24.dp)
+                .padding(horizontal = 25.dp, vertical = 27.dp)
         ) {
-            Canvas(Modifier.matchParentSize()) {
-                drawCircle(Color.White.copy(alpha = .08f), radius = size.width * .42f, center = androidx.compose.ui.geometry.Offset(size.width * .96f, size.height * .08f))
-                drawCircle(Color.White.copy(alpha = .06f), radius = size.width * .28f, center = androidx.compose.ui.geometry.Offset(size.width * .86f, size.height * .9f))
-            }
-            Column(Modifier.fillMaxWidth(.78f)) {
-                Surface(color = Color.White.copy(alpha = .16f), shape = RoundedCornerShape(99.dp)) {
-                    Text(
-                        copy.t("ТВОЯ ПАМЯТЬ, НО УДОБНЕЕ", "YOUR MEMORY, BUT EASIER"),
-                        color = Color.White,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Black,
-                        letterSpacing = .7.sp,
-                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp)
-                    )
-                }
-                Spacer(Modifier.height(18.dp))
+            Column(Modifier.fillMaxWidth()) {
                 Text(
-                    copy.t("Сохраняй сейчас.\nНаходи потом.", "Save now.\nFind it later."),
+                    copy.t("Всё важное —\nв одном месте.", "Everything important —\nin one place."),
                     color = Color.White,
-                    fontSize = 29.sp,
-                    lineHeight = 31.sp,
+                    fontSize = 31.sp,
+                    lineHeight = 33.sp,
                     fontWeight = FontWeight.Black,
-                    letterSpacing = (-.7).sp
+                    letterSpacing = (-.9).sp
                 )
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(12.dp))
                 Text(
-                    copy.t("Рилсы, рецепты, идеи, фото и файлы — всё в одном месте.", "Reels, recipes, ideas, photos and files — all in one place."),
-                    color = Color.White.copy(alpha = .84f),
-                    lineHeight = 20.sp
+                    copy.t("Рилсы, рецепты, идеи и файлы. Сохраняй за одно касание — находи без поисков по чатам.", "Reels, recipes, ideas and files. Save in one tap and find without digging through chats."),
+                    color = Color.White.copy(alpha = .88f),
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.fillMaxWidth(.93f)
                 )
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(23.dp))
                 Button(
                     onClick = onAdd,
+                    modifier = Modifier.height(52.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = SavioBlue),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(17.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 19.dp)
                 ) {
-                    SavioGlyph(Glyph.PLUS, Modifier.size(18.dp), color = SavioBlue)
-                    Spacer(Modifier.width(8.dp))
-                    Text(copy.t("Сохранить", "Save"), fontWeight = FontWeight.ExtraBold)
+                    SavioGlyph(Glyph.PLUS, Modifier.size(20.dp), color = SavioBlue, stroke = 2.4.dp)
+                    Spacer(Modifier.width(9.dp))
+                    Text(copy.t("Добавить в SAVIO", "Add to SAVIO"), fontWeight = FontWeight.ExtraBold, fontSize = 15.sp)
                 }
             }
-            SavioMark(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(90.dp),
-                color = Color.White.copy(alpha = .22f)
-            )
         }
     }
 }
 
 @Composable
-fun MetricCard(glyph: Glyph, value: String, label: String, color: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun QuickAccessCard(glyph: Glyph, value: String, label: String, color: Color, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(25.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp,
         modifier = modifier
     ) {
-        Column(Modifier.padding(15.dp)) {
+        Row(Modifier.padding(17.dp), verticalAlignment = Alignment.CenterVertically) {
             Box(
                 Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(11.dp))
-                    .background(color.copy(alpha = .12f)),
+                    .size(53.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Brush.linearGradient(listOf(color, color.copy(alpha = .72f)))),
                 contentAlignment = Alignment.Center
             ) {
-                SavioGlyph(glyph, Modifier.size(18.dp), color)
+                SavioGlyph(glyph, Modifier.size(27.dp), Color.White, stroke = 2.25.dp)
             }
-            Spacer(Modifier.height(12.dp))
-            Text(value, fontWeight = FontWeight.Black, fontSize = 22.sp)
-            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            Spacer(Modifier.width(13.dp))
+            Column(Modifier.weight(1f)) {
+                Text(label, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, maxLines = 1)
+                Spacer(Modifier.height(3.dp))
+                Text(value, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+            }
+        }
+    }
+}
+
+@Composable
+fun SavioFolderArtwork(color: Color, isInbox: Boolean, modifier: Modifier = Modifier) {
+    Canvas(modifier) {
+        val w = size.width
+        val h = size.height
+        val folder = androidx.compose.ui.graphics.Path().apply {
+            moveTo(w * .07f, h * .31f)
+            quadraticTo(w * .07f, h * .18f, w * .20f, h * .18f)
+            lineTo(w * .39f, h * .18f)
+            quadraticTo(w * .45f, h * .18f, w * .50f, h * .29f)
+            lineTo(w * .84f, h * .29f)
+            quadraticTo(w * .94f, h * .29f, w * .92f, h * .43f)
+            lineTo(w * .85f, h * .79f)
+            quadraticTo(w * .83f, h * .90f, w * .70f, h * .90f)
+            lineTo(w * .20f, h * .90f)
+            quadraticTo(w * .09f, h * .90f, w * .08f, h * .80f)
+            close()
+        }
+        drawPath(
+            folder,
+            Brush.linearGradient(
+                colors = listOf(color.copy(alpha = .76f), color, color.copy(alpha = .82f)),
+                start = androidx.compose.ui.geometry.Offset.Zero,
+                end = androidx.compose.ui.geometry.Offset(w, h)
+            )
+        )
+        drawLine(
+            Color.White.copy(alpha = .28f),
+            androidx.compose.ui.geometry.Offset(w * .15f, h * .40f),
+            androidx.compose.ui.geometry.Offset(w * .84f, h * .40f),
+            strokeWidth = h * .035f,
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        if (isInbox) {
+            drawLine(Color.White, androidx.compose.ui.geometry.Offset(w * .34f, h * .64f), androidx.compose.ui.geometry.Offset(w * .66f, h * .64f), h * .04f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(Color.White, androidx.compose.ui.geometry.Offset(w * .41f, h * .72f), androidx.compose.ui.geometry.Offset(w * .59f, h * .72f), h * .04f, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         }
     }
 }
@@ -201,25 +229,18 @@ fun FolderCard(folder: SavioFolder, count: Int, copy: SavioCopy, onClick: () -> 
     val folderColor = parseColor(folder.color)
     Surface(
         onClick = onClick,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(27.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp,
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp,
         modifier = modifier
     ) {
-        Column(Modifier.padding(17.dp)) {
-            Box(
-                Modifier
-                    .size(49.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(Brush.linearGradient(listOf(folderColor, folderColor.copy(alpha = .72f)))),
-                contentAlignment = Alignment.Center
-            ) {
-                SavioGlyph(if (folder.isSystem) Glyph.INBOX else Glyph.FOLDER, Modifier.size(25.dp), Color.White)
-            }
-            Spacer(Modifier.height(16.dp))
-            Text(folder.displayName(copy), fontWeight = FontWeight.ExtraBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(3.dp))
-            Text(copy.itemCount(count), color = MaterialTheme.colorScheme.onSurfaceVariant, style = MaterialTheme.typography.bodySmall)
+        Column(Modifier.padding(horizontal = 18.dp, vertical = 17.dp)) {
+            SavioFolderArtwork(folderColor, folder.isSystem, Modifier.width(82.dp).height(66.dp))
+            Spacer(Modifier.height(12.dp))
+            Text(folder.displayName(copy), fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Spacer(Modifier.height(4.dp))
+            Text(copy.itemCount(count), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)
         }
     }
 }
@@ -235,15 +256,16 @@ fun SavioItemCard(
     Surface(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(22.dp),
+        shape = RoundedCornerShape(25.dp),
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
+        tonalElevation = 0.dp,
+        shadowElevation = 1.dp
     ) {
-        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            ItemPreview(item, Modifier.size(74.dp))
-            Spacer(Modifier.width(14.dp))
+        Row(Modifier.padding(13.dp), verticalAlignment = Alignment.CenterVertically) {
+            ItemPreview(item, Modifier.size(82.dp))
+            Spacer(Modifier.width(15.dp))
             Column(Modifier.weight(1f)) {
-                Text(item.title, fontWeight = FontWeight.ExtraBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(item.title, fontWeight = FontWeight.ExtraBold, fontSize = 16.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Spacer(Modifier.height(4.dp))
                 val subtitle = when (item.type) {
                     SavioItemType.IMAGE -> copy.t("Фото", "Photo")
