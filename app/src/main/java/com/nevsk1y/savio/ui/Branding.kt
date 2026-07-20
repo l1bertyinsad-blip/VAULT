@@ -30,18 +30,18 @@ fun SavioMark(modifier: Modifier = Modifier, color: Color = SavioBlue) {
         val h = size.height
         // The head and bookmark are deliberately separated: the gap is part of
         // SAVIO's mark and keeps it readable even at launcher-icon size.
-        drawCircle(color, radius = w * 0.102f, center = Offset(w * 0.5f, h * 0.19f))
+        drawCircle(color, radius = w * 0.12f, center = Offset(w * 0.5f, h * 0.14f))
         val path = Path().apply {
-            moveTo(w * 0.24f, h * 0.435f)
-            quadraticTo(w * 0.24f, h * 0.36f, w * 0.325f, h * 0.36f)
-            lineTo(w * 0.675f, h * 0.36f)
-            quadraticTo(w * 0.76f, h * 0.36f, w * 0.76f, h * 0.435f)
-            lineTo(w * 0.76f, h * 0.83f)
-            quadraticTo(w * 0.76f, h * 0.87f, w * 0.72f, h * 0.838f)
-            lineTo(w * 0.526f, h * 0.68f)
-            quadraticTo(w * 0.5f, h * 0.658f, w * 0.474f, h * 0.68f)
-            lineTo(w * 0.28f, h * 0.838f)
-            quadraticTo(w * 0.24f, h * 0.87f, w * 0.24f, h * 0.83f)
+            moveTo(w * 0.25f, h * 0.455f)
+            quadraticTo(w * 0.25f, h * 0.38f, w * 0.325f, h * 0.38f)
+            lineTo(w * 0.675f, h * 0.38f)
+            quadraticTo(w * 0.75f, h * 0.38f, w * 0.75f, h * 0.455f)
+            lineTo(w * 0.75f, h * 0.85f)
+            quadraticTo(w * 0.75f, h * 0.90f, w * 0.71f, h * 0.865f)
+            lineTo(w * 0.525f, h * 0.715f)
+            quadraticTo(w * 0.5f, h * 0.695f, w * 0.475f, h * 0.715f)
+            lineTo(w * 0.29f, h * 0.865f)
+            quadraticTo(w * 0.25f, h * 0.90f, w * 0.25f, h * 0.85f)
             close()
         }
         drawPath(path, color)

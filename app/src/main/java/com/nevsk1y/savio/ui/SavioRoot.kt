@@ -66,6 +66,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 private enum class TopTab(val glyph: Glyph) { HOME(Glyph.HOME), FOLDERS(Glyph.FOLDER), FAVORITES(Glyph.STAR), PROFILE(Glyph.PERSON) }
+private const val OnboardingVersion = 2
 
 private sealed interface Route {
     data object Main : Route
@@ -82,7 +83,10 @@ fun SavioRoot(repository: SavioRepository, shareEvent: ShareImportEvent?, consum
     val context = LocalContext.current
     var introFinished by rememberSaveable { mutableStateOf(false) }
     var onboardingFinished by rememberSaveable {
-        mutableStateOf(context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE).getBoolean("onboarding_finished", false))
+        mutableStateOf(
+            context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE)
+                .getInt("onboarding_version", 0) >= OnboardingVersion
+        )
     }
     val copy = SavioCopy(state.settings.language)
 
@@ -99,7 +103,10 @@ fun SavioRoot(repository: SavioRepository, shareEvent: ShareImportEvent?, consum
             when (step) {
                 0 -> BrandIntro { introFinished = true }
                 1 -> Onboarding(copy) {
-                    context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE).edit().putBoolean("onboarding_finished", true).apply()
+                    context.getSharedPreferences("savio_prefs", Context.MODE_PRIVATE)
+                        .edit()
+                        .putInt("onboarding_version", OnboardingVersion)
+                        .apply()
                     onboardingFinished = true
                 }
                 else -> MainSavio(repository, shareEvent, consumeShareEvent)

@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,83 +45,105 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nevsk1y.savio.ui.theme.SavioBlue
-import com.nevsk1y.savio.ui.theme.SavioBlueBright
 import kotlinx.coroutines.delay
 
 @Composable
 fun BrandIntro(onFinished: () -> Unit) {
-    val scale = remember { Animatable(.72f) }
+    val scale = remember { Animatable(.78f) }
     val alpha = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        alpha.animateTo(1f, tween(320))
-        scale.animateTo(1f, tween(520, easing = FastOutSlowInEasing))
-        delay(420)
-        alpha.animateTo(0f, tween(260))
+        alpha.animateTo(1f, tween(300))
+        scale.animateTo(1f, tween(540, easing = FastOutSlowInEasing))
+        delay(520)
+        alpha.animateTo(0f, tween(240))
         onFinished()
     }
-    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background), contentAlignment = Alignment.Center) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .background(Brush.linearGradient(listOf(Color(0xFF0766FF), Color(0xFF304DFF), Color(0xFF7049F5)))),
+        contentAlignment = Alignment.Center
+    ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.scale(scale.value).alpha(alpha.value)) {
-            SavioMark(Modifier.size(112.dp))
-            Spacer(Modifier.height(15.dp))
-            Text("SAVIO", fontWeight = FontWeight.Black, fontSize = 34.sp, letterSpacing = (-1).sp)
-            Text("Сохрани сейчас. Найди потом.", color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 5.dp))
+            SavioMark(Modifier.size(130.dp), Color.White)
+            Spacer(Modifier.height(18.dp))
+            Text("SAVIO", color = Color.White, fontWeight = FontWeight.Black, fontSize = 38.sp, letterSpacing = (-1.2).sp)
+            Text(
+                "Сохраняй важное. Возвращайся к идеям.",
+                color = Color.White.copy(alpha = .78f),
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 7.dp)
+            )
         }
     }
 }
 
-private data class OnboardingPage(val glyph: Glyph, val titleRu: String, val titleEn: String, val bodyRu: String, val bodyEn: String, val colorA: Color, val colorB: Color)
+private data class OnboardingPage(
+    val glyph: Glyph,
+    val titleRu: String,
+    val titleEn: String,
+    val bodyRu: String,
+    val bodyEn: String,
+    val chipOneRu: String,
+    val chipOneEn: String,
+    val chipTwoRu: String,
+    val chipTwoEn: String,
+    val colorA: Color,
+    val colorB: Color
+)
 
 private val onboardingPages = listOf(
-    OnboardingPage(Glyph.LINK, "Не теряй полезное в скроллинге", "Don't lose useful things while scrolling", "Нажми «Поделиться» в Instagram, браузере или галерее — и выбери SAVIO.", "Tap Share in Instagram, your browser or gallery — then choose SAVIO.", Color(0xFF0B4DFF), Color(0xFF6C55FF)),
-    OnboardingPage(Glyph.FOLDER, "Всё на своём месте", "Everything in its place", "Рецепты, идеи, поездки, работа. Раскладывай сразу или разбирай Входящие позже.", "Recipes, ideas, trips and work. File them now or sort Inbox later.", Color(0xFF7C5CFC), Color(0xFFFF6B8A)),
-    OnboardingPage(Glyph.SEARCH, "Сохрани мысль, а не только файл", "Save the thought, not just the file", "Добавь описание: зачем сохранил и что хочешь сделать. Поиск вернёт идею в нужный момент.", "Add why you saved it and what to do next. Search brings the idea back when needed.", Color(0xFFFF7A30), Color(0xFFFFB000))
+    OnboardingPage(Glyph.LINK, "Сохраняй прямо из ленты", "Save straight from your feed", "Нажми «Поделиться» в Instagram, браузере или галерее — и выбери SAVIO.", "Tap Share in Instagram, your browser or gallery — then choose SAVIO.", "Instagram", "Instagram", "Сохранено", "Saved", Color(0xFF0766FF), Color(0xFF694BFA)),
+    OnboardingPage(Glyph.FOLDER, "Каждая идея на своём месте", "Every idea in its place", "Рецепты, поездки и вдохновение лежат в понятных папках, а не теряются среди скриншотов.", "Recipes, trips and inspiration live in clear folders instead of getting lost among screenshots.", "Идеи", "Ideas", "Рецепты", "Recipes", Color(0xFF694BFA), Color(0xFF9A55F7)),
+    OnboardingPage(Glyph.SEARCH, "Помни, зачем сохранил", "Remember why you saved it", "Добавь пару слов к материалу. SAVIO поможет быстро вернуть не только файл, но и твою мысль.", "Add a few words. SAVIO helps you recover not just the file, but your thought.", "Моя мысль", "My thought", "Найдено", "Found", Color(0xFFFF7A30), Color(0xFFFFB329))
 )
 
 @Composable
 fun Onboarding(copy: SavioCopy, onComplete: () -> Unit) {
     var page by remember { mutableIntStateOf(0) }
-    val current = onboardingPages[page]
-    Column(Modifier.fillMaxSize().padding(horizontal = 22.dp, vertical = 18.dp)) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 18.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             SavioWordmark(compact = true)
-            if (page < onboardingPages.lastIndex) TextButton(onClick = onComplete) { Text(copy.t("Пропустить", "Skip")) }
-        }
-        Spacer(Modifier.weight(1f))
-        AnimatedContent(
-            targetState = current,
-            transitionSpec = { (fadeIn(tween(260)) + scaleIn(initialScale = .96f)) togetherWith (fadeOut(tween(180)) + scaleOut(targetScale = 1.03f)) },
-            label = "onboarding"
-        ) { item ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Surface(
-                    shape = RoundedCornerShape(42.dp),
-                    color = Color.Transparent,
-                    modifier = Modifier.size(238.dp)
-                ) {
-                    Box(Modifier.background(Brush.linearGradient(listOf(item.colorA, item.colorB))), contentAlignment = Alignment.Center) {
-                        SavioGlyph(item.glyph, Modifier.size(92.dp), Color.White, 5.dp)
-                        SavioMark(Modifier.align(Alignment.BottomEnd).padding(20.dp).size(56.dp), Color.White.copy(alpha = .22f))
-                    }
+            if (page < onboardingPages.lastIndex) {
+                TextButton(onClick = onComplete) {
+                    Text(copy.t("Пропустить", "Skip"), fontWeight = FontWeight.Bold)
                 }
-                Spacer(Modifier.height(32.dp))
+            }
+        }
+
+        Spacer(Modifier.weight(1f))
+
+        AnimatedContent(
+            targetState = page,
+            transitionSpec = { (fadeIn(tween(260)) + scaleIn(initialScale = .97f)) togetherWith (fadeOut(tween(170)) + scaleOut(targetScale = 1.02f)) },
+            label = "onboarding"
+        ) { pageIndex ->
+            val item = onboardingPages[pageIndex]
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                OnboardingArtwork(item, copy)
+                Spacer(Modifier.height(30.dp))
                 Text(
                     copy.t(item.titleRu, item.titleEn),
                     fontWeight = FontWeight.Black,
                     fontSize = 30.sp,
-                    lineHeight = 33.sp,
+                    lineHeight = 34.sp,
                     textAlign = TextAlign.Center,
-                    letterSpacing = (-.7).sp
+                    letterSpacing = (-.8).sp
                 )
                 Spacer(Modifier.height(13.dp))
                 Text(
                     copy.t(item.bodyRu, item.bodyEn),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp,
                     textAlign = TextAlign.Center,
-                    lineHeight = 21.sp
+                    lineHeight = 23.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
             }
         }
+
         Spacer(Modifier.weight(1f))
+
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
             onboardingPages.indices.forEach { index ->
                 Box(
@@ -138,5 +161,61 @@ fun Onboarding(copy: SavioCopy, onComplete: () -> Unit) {
             { if (page == onboardingPages.lastIndex) onComplete() else page++ },
             Modifier.fillMaxWidth()
         )
+    }
+}
+
+@Composable
+private fun OnboardingArtwork(item: OnboardingPage, copy: SavioCopy) {
+    Surface(
+        modifier = Modifier.fillMaxWidth().height(252.dp),
+        shape = RoundedCornerShape(38.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = .55f)),
+        shadowElevation = 4.dp
+    ) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        listOf(item.colorA.copy(alpha = .08f), MaterialTheme.colorScheme.surface, item.colorB.copy(alpha = .14f))
+                    )
+                )
+        ) {
+            FloatingLabel(
+                text = copy.t(item.chipOneRu, item.chipOneEn),
+                color = item.colorA,
+                modifier = Modifier.align(Alignment.TopStart).padding(start = 18.dp, top = 24.dp)
+            )
+            Surface(
+                modifier = Modifier.align(Alignment.Center).size(132.dp),
+                shape = RoundedCornerShape(38.dp),
+                color = Color.Transparent,
+                shadowElevation = 14.dp
+            ) {
+                Box(
+                    Modifier.background(Brush.linearGradient(listOf(item.colorA, item.colorB))),
+                    contentAlignment = Alignment.Center
+                ) {
+                    SavioGlyph(item.glyph, Modifier.size(62.dp), Color.White, 3.5.dp)
+                }
+            }
+            FloatingLabel(
+                text = copy.t(item.chipTwoRu, item.chipTwoEn),
+                color = item.colorB,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 18.dp, bottom = 24.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun FloatingLabel(text: String, color: Color, modifier: Modifier = Modifier) {
+    Surface(modifier = modifier, shape = RoundedCornerShape(99.dp), color = MaterialTheme.colorScheme.surface, shadowElevation = 7.dp) {
+        Row(Modifier.padding(horizontal = 13.dp, vertical = 9.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(9.dp).background(color, CircleShape))
+            Spacer(Modifier.width(8.dp))
+            Text(text, fontWeight = FontWeight.ExtraBold, fontSize = 12.sp)
+        }
     }
 }

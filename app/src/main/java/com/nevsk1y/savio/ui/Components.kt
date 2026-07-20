@@ -236,8 +236,21 @@ fun FolderCard(folder: SavioFolder, count: Int, copy: SavioCopy, onClick: () -> 
         modifier = modifier
     ) {
         Column(Modifier.padding(horizontal = 18.dp, vertical = 17.dp)) {
-            SavioFolderArtwork(folderColor, folder.isSystem, Modifier.width(82.dp).height(66.dp))
-            Spacer(Modifier.height(12.dp))
+            Box(
+                Modifier
+                    .size(58.dp)
+                    .clip(RoundedCornerShape(19.dp))
+                    .background(Brush.linearGradient(listOf(folderColor, folderColor.copy(alpha = .72f)))),
+                contentAlignment = Alignment.Center
+            ) {
+                SavioGlyph(
+                    if (folder.isSystem) Glyph.INBOX else Glyph.FOLDER,
+                    Modifier.size(30.dp),
+                    Color.White,
+                    stroke = 2.35.dp
+                )
+            }
+            Spacer(Modifier.height(14.dp))
             Text(folder.displayName(copy), fontWeight = FontWeight.ExtraBold, fontSize = 17.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(4.dp))
             Text(copy.itemCount(count), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 13.sp)

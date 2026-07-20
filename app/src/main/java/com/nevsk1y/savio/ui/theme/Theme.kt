@@ -13,12 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
-import com.nevsk1y.savio.R
 
 val SavioBlue = Color(0xFF0B4DFF)
 val SavioBlueBright = Color(0xFF3472FF)
@@ -62,13 +60,7 @@ private val DarkColors = darkColorScheme(
     error = Color(0xFFFFB4AB)
 )
 
-private val SavioFont = FontFamily(
-    Font(R.font.manrope_variable, FontWeight.Normal),
-    Font(R.font.manrope_variable, FontWeight.Medium),
-    Font(R.font.manrope_variable, FontWeight.SemiBold),
-    Font(R.font.manrope_variable, FontWeight.Bold),
-    Font(R.font.manrope_variable, FontWeight.ExtraBold)
-)
+private val SavioFont = FontFamily.SansSerif
 
 private val SavioTypography = Typography(
     displaySmall = TextStyle(fontFamily = SavioFont, fontWeight = FontWeight.ExtraBold, fontSize = 34.sp, lineHeight = 38.sp, letterSpacing = (-1.1).sp),

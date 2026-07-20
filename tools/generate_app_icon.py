@@ -2,16 +2,16 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[1]
-BACKGROUND = ROOT / "app/src/main/res/drawable-nodpi/savio_icon_background.png"
+BACKGROUND = ROOT / "app/src/main/res/drawable-nodpi/savio_icon_background_v2.png"
 OUTPUT = ROOT / "play/graphics/SAVIO-Android-AppIcon-1024.png"
 
 background = Image.open(BACKGROUND).convert("RGBA").resize((1024, 1024), Image.Resampling.LANCZOS)
 
 mask = Image.new("L", background.size, 0)
 draw = ImageDraw.Draw(mask)
-draw.ellipse((414, 132, 610, 328), fill=255)
-draw.rounded_rectangle((270, 358, 754, 842), radius=74, fill=255)
-draw.polygon(((270, 842), (512, 650), (754, 842)), fill=0)
+draw.ellipse((396, 72, 628, 304), fill=255)
+draw.rounded_rectangle((270, 360, 754, 844), radius=72, fill=255)
+draw.polygon(((270, 844), (512, 682), (754, 844)), fill=0)
 
 shadow = Image.new("RGBA", background.size, (0, 0, 0, 0))
 shadow_mask = mask.filter(ImageFilter.GaussianBlur(16))

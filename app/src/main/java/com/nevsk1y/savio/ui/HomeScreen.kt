@@ -89,7 +89,7 @@ fun HomeScreen(
                         count = visibleItems.count { it.folderId == folder.id },
                         copy = copy,
                         onClick = { onOpenFolder(folder.id) },
-                        modifier = Modifier.weight(1f).height(166.dp)
+                        modifier = Modifier.weight(1f).height(154.dp)
                     )
                 }
                 if (row.size == 1) Spacer(Modifier.weight(1f))
