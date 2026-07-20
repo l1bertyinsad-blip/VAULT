@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.nevsk1y.savio"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.nevsk1y.savio"
@@ -54,7 +54,7 @@ android {
 
 dependencies {
     implementation("androidx.activity:activity-compose:1.13.0")
-    implementation("androidx.core:core-ktx:1.19.0")
+    implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.compose.runtime:runtime:1.11.4")
     implementation("androidx.compose.ui:ui:1.11.4")
